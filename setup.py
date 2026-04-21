@@ -20,6 +20,7 @@ setup(
         "plotly>=5.15.0",
         "kaggle>=1.5.0",
         "joblib>=1.3.0",
+        "gradio>=5.0.0",
         "prophet>=1.1.0",
     ],
     extras_require={
