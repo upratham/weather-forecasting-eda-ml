@@ -6,6 +6,14 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+
+
+import json
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
@@ -33,31 +41,242 @@ PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 MODELS_DIR = PROJECT_ROOT / "models"
 APP_MODEL_PATH = MODELS_DIR / "gradio_temperature_model.joblib"
 APP_META_PATH = MODELS_DIR / "gradio_temperature_model_meta.json"
-APP_THEME = gr.themes.Soft(primary_hue="emerald", neutral_hue="stone")
 
+# Enhanced theme with more vibrant colors
+APP_THEME = gr.themes.Soft(
+    primary_hue="blue",
+    secondary_hue="cyan",
+    neutral_hue="slate",
+    font=gr.themes.GoogleFont("Inter"),
+).set(
+    body_background_fill="linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    body_background_fill_dark="linear-gradient(135deg, #1e3a8a 0%, #312e81 100%)",
+)
+
+# Enhanced CSS with modern design
 APP_CSS = """
+/* Global container styling */
 .gradio-container {
-    background:
-        radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 32%),
-        radial-gradient(circle at top right, rgba(14, 116, 144, 0.16), transparent 28%),
-        linear-gradient(180deg, #f6fbfb 0%, #eef6f4 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    min-height: 100vh;
 }
+
+/* Hero section with glassmorphism */
 .hero {
-    padding: 1.2rem 1.4rem;
-    border: 1px solid rgba(15, 118, 110, 0.16);
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.84);
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+    padding: 2rem 2.5rem;
+    margin: 1rem 0 2rem 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    animation: fadeInUp 0.6s ease-out;
 }
-.hero h1, .panel h3 {
-    font-family: Georgia, "Times New Roman", serif;
+
+.hero h1 {
+    font-family: 'Inter', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+.hero p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Panel styling with glassmorphism */
 .panel {
-    padding: 1rem 1.1rem;
-    border: 1px solid rgba(15, 118, 110, 0.14);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.86);
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+    padding: 1.5rem 1.8rem;
+    margin: 0.5rem 0;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.panel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+}
+
+.panel h3 {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Input field styling */
+input[type="number"], 
+input[type="text"], 
+.gr-text-input,
+.gr-number-input {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 12px !important;
+    color: #1e293b !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+input[type="number"]:focus, 
+input[type="text"]:focus {
+    background: rgba(255, 255, 255, 1) !important;
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.2) !important;
+    transform: scale(1.01);
+}
+
+/* Button styling */
+.gr-button {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 2rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.gr-button-primary {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.gr-button-primary:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+}
+
+.gr-button-secondary {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    color: white !important;
+}
+
+.gr-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-2px);
+}
+
+/* Output styling */
+.gr-markdown {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 1.5rem !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.gr-markdown h3 {
+    color: #e0e7ff !important;
+    font-weight: 700 !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.gr-markdown strong {
+    color: #60a5fa !important;
+}
+
+/* Label styling */
+label {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Examples section */
+.gr-examples {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 16px !important;
+    padding: 1rem !important;
+    margin-top: 1.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Animation keyframes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Column styling */
+.gr-column {
+    background: transparent !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Weather icon indicators */
+.weather-icon {
+    display: inline-block;
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+/* Temperature display enhancement */
+.temp-display {
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 """
 
@@ -117,7 +336,7 @@ def build_input_ranges(df: pd.DataFrame) -> dict[str, dict[str, float | int | st
 def default_output_message() -> str:
     """Return the default helper text shown before a prediction is made."""
 
-    return "Run a prediction to see the cleaned inputs, model metrics, and final estimate."
+    return "🌡️ Run a prediction to see the cleaned inputs, model metrics, and final temperature estimate."
 
 
 def train_app_model() -> dict[str, Any]:
@@ -125,6 +344,11 @@ def train_app_model() -> dict[str, Any]:
 
     source_path = resolve_training_source()
     df = load_processed_data(source_path)
+    df = df.copy()
+    # Cap physically impossible outlier values that survived anomaly detection
+    for col, lo, hi in [("wind_kph", 0, 200), ("gust_kph", 0, 250), ("pressure_mb", 870, 1100)]:
+        if col in df.columns:
+            df[col] = df[col].clip(lo, hi)
     X, y = prepare_app_model_frame(df, target_column="temperature_celsius")
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -136,6 +360,7 @@ def train_app_model() -> dict[str, Any]:
 
     model = RandomForestRegressor(
         n_estimators=100,
+        max_depth=20,
         random_state=42,
         n_jobs=-1,
     )
@@ -235,68 +460,70 @@ def normalize_prediction_inputs(
     rounded_hour = int(round(hour_value))
     clamped_hour = int(_clamp(rounded_hour, lower=0, upper=23))
     if rounded_hour != hour_value:
-        notes.append(f"Hour rounded from {hour_value} to {rounded_hour}.")
+        notes.append(f"Hour was rounded from {hour_value} to {rounded_hour}.")
     if clamped_hour != rounded_hour:
-        notes.append(f"Hour clamped to {clamped_hour} to stay within 0-23.")
+        notes.append(f"Hour was clamped from {rounded_hour} to {clamped_hour}.")
     normalized["hour"] = clamped_hour
 
-    pressure_value = _as_float(pressure_mb, "Pressure (mb)")
-    if pressure_value <= 0:
-        raise gr.Error("Pressure must be greater than 0 mb.")
-    normalized["pressure_mb"] = pressure_value
+    pressure_value = _as_float(pressure_mb, "Pressure")
+    clamped_pressure = _clamp(pressure_value, lower=850, upper=1100)
+    if clamped_pressure != pressure_value:
+        notes.append(f"Pressure was clamped from {pressure_value} to {clamped_pressure}.")
+    normalized["pressure_mb"] = clamped_pressure
 
     humidity_value = _as_float(humidity, "Humidity")
     clamped_humidity = _clamp(humidity_value, lower=0, upper=100)
     if clamped_humidity != humidity_value:
-        notes.append(f"Humidity clamped to {clamped_humidity}%.")
+        notes.append(f"Humidity was clamped from {humidity_value} to {clamped_humidity}.")
     normalized["humidity"] = clamped_humidity
 
-    cloud_value = _as_float(cloud, "Cloud cover")
+    cloud_value = _as_float(cloud, "Cloud")
     clamped_cloud = _clamp(cloud_value, lower=0, upper=100)
     if clamped_cloud != cloud_value:
-        notes.append(f"Cloud cover clamped to {clamped_cloud}%.")
+        notes.append(f"Cloud was clamped from {cloud_value} to {clamped_cloud}.")
     normalized["cloud"] = clamped_cloud
 
-    wind_value = _clamp(_as_float(wind_kph, "Wind speed"), lower=0)
-    gust_value = _clamp(_as_float(gust_kph, "Gust speed"), lower=0)
-    precip_value = _clamp(_as_float(precip_mm, "Precipitation"), lower=0)
-    visibility_value = _clamp(_as_float(visibility_km, "Visibility"), lower=0)
-    uv_value = _clamp(_as_float(uv_index, "UV index"), lower=0)
+    wind_value = _as_float(wind_kph, "Wind")
+    clamped_wind = _clamp(wind_value, lower=0, upper=200)
+    if clamped_wind != wind_value:
+        notes.append(f"Wind was clamped from {wind_value} to {clamped_wind}.")
+    normalized["wind_kph"] = clamped_wind
 
-    if wind_value != float(wind_kph):
-        notes.append("Wind speed clamped to a non-negative value.")
-    if gust_value != float(gust_kph):
-        notes.append("Gust speed clamped to a non-negative value.")
-    if precip_value != float(precip_mm):
-        notes.append("Precipitation clamped to a non-negative value.")
-    if visibility_value != float(visibility_km):
-        notes.append("Visibility clamped to a non-negative value.")
-    if uv_value != float(uv_index):
-        notes.append("UV index clamped to a non-negative value.")
+    gust_value = _as_float(gust_kph, "Gust")
+    clamped_gust = _clamp(gust_value, lower=0, upper=250)
+    if clamped_gust != gust_value:
+        notes.append(f"Gust was clamped from {gust_value} to {clamped_gust}.")
+    normalized["gust_kph"] = clamped_gust
 
-    normalized["wind_kph"] = wind_value
-    normalized["gust_kph"] = gust_value
-    normalized["precip_mm"] = precip_value
-    normalized["visibility_km"] = visibility_value
-    normalized["uv_index"] = uv_value
+    precip_value = _as_float(precip_mm, "Precipitation")
+    clamped_precip = _clamp(precip_value, lower=0, upper=500)
+    if clamped_precip != precip_value:
+        notes.append(f"Precipitation was clamped from {precip_value} to {clamped_precip}.")
+    normalized["precip_mm"] = clamped_precip
+
+    visibility_value = _as_float(visibility_km, "Visibility")
+    clamped_visibility = _clamp(visibility_value, lower=0, upper=100)
+    if clamped_visibility != visibility_value:
+        notes.append(f"Visibility was clamped from {visibility_value} to {clamped_visibility}.")
+    normalized["visibility_km"] = clamped_visibility
+
+    uv_value = _as_float(uv_index, "UV Index")
+    clamped_uv = _clamp(uv_value, lower=0, upper=15)
+    if clamped_uv != uv_value:
+        notes.append(f"UV Index was clamped from {uv_value} to {clamped_uv}.")
+    normalized["uv_index"] = clamped_uv
+
     return normalized, notes
 
 
 def format_model_summary(meta: dict[str, Any]) -> str:
-    """Render the static model summary shown in the app."""
+    """Render the model metadata summary."""
 
-    metrics = meta["metrics"]
-    source_name = Path(meta["source_path"]).name
-    feature_count = len(meta["feature_columns"])
     return (
-        "### Model Snapshot\n"
-        f"- **Model**: {meta['model_name']}\n"
-        f"- **Training data**: `{source_name}`\n"
-        f"- **Rows used**: {meta['row_count']:,}\n"
-        f"- **Feature count**: {feature_count}\n"
-        f"- **Held-out MAE**: {metrics['mae']}\n"
-        f"- **Held-out RMSE**: {metrics['rmse']}\n"
-        f"- **Held-out R2**: {metrics['r2']}\n"
+        "### 📊 Model Information\n"
+        f"- **Model Type**: {meta['model_name']}\n"
+        f"- **Training Dataset**: {meta['row_count']:,} rows total\n"
+        f"- **Train / Test Split**: {meta['train_rows']:,} / {meta['test_rows']:,} rows\n"
         f"- **Trained at**: {meta['trained_at']}"
     )
 
@@ -312,27 +539,31 @@ def format_prediction_details(
     """Render the prediction explanation block."""
 
     metrics = meta["metrics"]
+    
+    # Temperature emoji based on celsius value
+    temp_emoji = "🥶" if celsius < 0 else "❄️" if celsius < 10 else "🌤️" if celsius < 20 else "☀️" if celsius < 30 else "🔥"
+    
     input_lines = [
-        f"- **Latitude / Longitude**: {normalized['latitude']:.2f}, {normalized['longitude']:.2f}",
-        f"- **Date / Hour**: {normalized['date']} at {normalized['hour']:02d}:00",
-        f"- **Pressure**: {normalized['pressure_mb']:.1f} mb",
-        f"- **Humidity / Cloud**: {normalized['humidity']:.1f}% / {normalized['cloud']:.1f}%",
-        f"- **Wind / Gust**: {normalized['wind_kph']:.1f} / {normalized['gust_kph']:.1f} kph",
-        f"- **Precipitation**: {normalized['precip_mm']:.2f} mm",
-        f"- **Visibility / UV**: {normalized['visibility_km']:.1f} km / {normalized['uv_index']:.1f}",
+        f"📍 **Latitude / Longitude**: {normalized['latitude']:.2f}, {normalized['longitude']:.2f}",
+        f"📅 **Date / Hour**: {normalized['date']} at {normalized['hour']:02d}:00",
+        f"🌡️ **Pressure**: {normalized['pressure_mb']:.1f} mb",
+        f"💧 **Humidity / Cloud**: {normalized['humidity']:.1f}% / {normalized['cloud']:.1f}%",
+        f"💨 **Wind / Gust**: {normalized['wind_kph']:.1f} / {normalized['gust_kph']:.1f} kph",
+        f"🌧️ **Precipitation**: {normalized['precip_mm']:.2f} mm",
+        f"👁️ **Visibility / UV**: {normalized['visibility_km']:.1f} km / {normalized['uv_index']:.1f}",
     ]
-    note_lines = notes or ["No input adjustments were needed."]
+    note_lines = notes or ["✅ No input adjustments were needed."]
     note_markdown = "\n".join(f"- {note}" for note in note_lines)
 
     return (
-        "### Prediction Details\n"
-        f"- **Predicted temperature**: {celsius:.2f} deg C / {fahrenheit:.2f} deg F\n"
-        f"- **Model**: {meta['model_name']}\n"
-        f"- **Held-out MAE**: {metrics['mae']}\n"
-        f"- **Held-out RMSE**: {metrics['rmse']}\n\n"
-        "### Input Snapshot\n"
+        f"### {temp_emoji} Prediction Results\n"
+        f"<div class='temp-display'>{celsius:.2f}°C / {fahrenheit:.2f}°F</div>\n\n"
+        f"**Model**: {meta['model_name']}  \n"
+        f"**Held-out MAE**: {metrics['mae']}°C  \n"
+        f"**Held-out RMSE**: {metrics['rmse']}°C\n\n"
+        "### 📝 Input Snapshot\n"
         f"{chr(10).join(input_lines)}\n\n"
-        "### Input Adjustments\n"
+        "### ⚙️ Input Adjustments\n"
         f"{note_markdown}"
     )
 
@@ -436,41 +667,56 @@ def build_interface() -> gr.Blocks:
     meta = artifacts["meta"]
     ranges = meta["input_ranges"]
 
-    with gr.Blocks(title="Weather Temperature Predictor") as demo:
+    with gr.Blocks(title="🌡️ Weather Temperature Predictor", theme=APP_THEME, css=APP_CSS) as demo:
         gr.Markdown(
             """
 <div class="hero">
-  <h1>Weather Temperature Predictor</h1>
-  <p>Enter a realistic weather snapshot and get an app-specific temperature prediction from the clean Gradio model.</p>
+  <h1>🌡️ Weather Temperature Predictor</h1>
+  <p>Enter a realistic weather snapshot and get an AI-powered temperature prediction using our trained RandomForest model</p>
 </div>
             """
         )
 
         with gr.Row():
             with gr.Column(scale=2):
-                gr.Markdown('<div class="panel"><h3>Manual Input</h3></div>')
-                latitude = gr.Number(label="Latitude", value=ranges["latitude"]["default"])
-                longitude = gr.Number(label="Longitude", value=ranges["longitude"]["default"])
-                date_value = gr.Textbox(
-                    label="Date (YYYY-MM-DD)",
-                    value=ranges["date"]["default"],
-                )
-                hour = gr.Number(label="Hour (0-23)", value=ranges["hour"]["default"], precision=0)
-                pressure_mb = gr.Number(label="Pressure (mb)", value=ranges["pressure_mb"]["default"])
-                humidity = gr.Number(label="Humidity (%)", value=ranges["humidity"]["default"])
-                cloud = gr.Number(label="Cloud Cover (%)", value=ranges["cloud"]["default"])
-                wind_kph = gr.Number(label="Wind Speed (kph)", value=ranges["wind_kph"]["default"])
-                gust_kph = gr.Number(label="Gust Speed (kph)", value=ranges["gust_kph"]["default"])
-                precip_mm = gr.Number(label="Precipitation (mm)", value=ranges["precip_mm"]["default"])
-                visibility_km = gr.Number(
-                    label="Visibility (km)",
-                    value=ranges["visibility_km"]["default"],
-                )
-                uv_index = gr.Number(label="UV Index", value=ranges["uv_index"]["default"])
+                gr.Markdown('<div class="panel"><h3>🌍 Manual Input</h3></div>')
+                
+                with gr.Group():
+                    gr.Markdown("**📍 Location**")
+                    latitude = gr.Number(label="Latitude", value=ranges["latitude"]["default"])
+                    longitude = gr.Number(label="Longitude", value=ranges["longitude"]["default"])
+                
+                with gr.Group():
+                    gr.Markdown("**📅 Date & Time**")
+                    date_value = gr.Textbox(
+                        label="Date (YYYY-MM-DD)",
+                        value=ranges["date"]["default"],
+                    )
+                    hour = gr.Number(label="Hour (0-23)", value=ranges["hour"]["default"], precision=0)
+                
+                with gr.Group():
+                    gr.Markdown("**🌤️ Weather Conditions**")
+                    pressure_mb = gr.Number(label="Pressure (mb)", value=ranges["pressure_mb"]["default"])
+                    humidity = gr.Number(label="Humidity (%)", value=ranges["humidity"]["default"])
+                    cloud = gr.Number(label="Cloud Cover (%)", value=ranges["cloud"]["default"])
+                
+                with gr.Group():
+                    gr.Markdown("**💨 Wind & Precipitation**")
+                    wind_kph = gr.Number(label="Wind Speed (kph)", value=ranges["wind_kph"]["default"])
+                    gust_kph = gr.Number(label="Gust Speed (kph)", value=ranges["gust_kph"]["default"])
+                    precip_mm = gr.Number(label="Precipitation (mm)", value=ranges["precip_mm"]["default"])
+                
+                with gr.Group():
+                    gr.Markdown("**👁️ Visibility & UV**")
+                    visibility_km = gr.Number(
+                        label="Visibility (km)",
+                        value=ranges["visibility_km"]["default"],
+                    )
+                    uv_index = gr.Number(label="UV Index", value=ranges["uv_index"]["default"])
 
                 with gr.Row():
-                    predict_button = gr.Button("Predict Temperature", variant="primary")
-                    reset_button = gr.Button("Reset Form")
+                    predict_button = gr.Button("🔮 Predict Temperature", variant="primary", size="lg")
+                    reset_button = gr.Button("🔄 Reset Form", size="lg")
 
                 gr.Examples(
                     examples=build_example_rows(meta),
@@ -489,12 +735,13 @@ def build_interface() -> gr.Blocks:
                         uv_index,
                     ],
                     cache_examples=False,
+                    label="📋 Quick Examples",
                 )
 
             with gr.Column(scale=1):
-                gr.Markdown('<div class="panel"><h3>Prediction Output</h3></div>')
-                celsius_output = gr.Number(label="Predicted Temperature (deg C)", precision=2)
-                fahrenheit_output = gr.Number(label="Predicted Temperature (deg F)", precision=2)
+                gr.Markdown('<div class="panel"><h3>📊 Prediction Output</h3></div>')
+                celsius_output = gr.Number(label="Predicted Temperature (°C)", precision=2, interactive=False)
+                fahrenheit_output = gr.Number(label="Predicted Temperature (°F)", precision=2, interactive=False)
                 details_output = gr.Markdown(default_output_message())
                 gr.Markdown(format_model_summary(meta))
 
@@ -528,7 +775,7 @@ def main() -> None:
     """Launch the Gradio application."""
 
     demo = build_interface()
-    demo.launch(theme=APP_THEME, css=APP_CSS)
+    demo.launch()
 
 
 if __name__ == "__main__":

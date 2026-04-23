@@ -96,6 +96,16 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     if "moon_illumination" in cleaned.columns:
         cleaned["moon_illumination"] = cleaned["moon_illumination"].clip(lower=0, upper=100)
 
+    # Cap physically impossible values (outliers that survive anomaly detection)
+    if "wind_kph" in cleaned.columns:
+        cleaned["wind_kph"] = cleaned["wind_kph"].clip(lower=0, upper=200)
+    if "gust_kph" in cleaned.columns:
+        cleaned["gust_kph"] = cleaned["gust_kph"].clip(lower=0, upper=250)
+    if "pressure_mb" in cleaned.columns:
+        cleaned["pressure_mb"] = cleaned["pressure_mb"].clip(lower=870, upper=1100)
+    if "visibility_km" in cleaned.columns:
+        cleaned["visibility_km"] = cleaned["visibility_km"].clip(lower=0, upper=50)
+
     return cleaned
 
 
