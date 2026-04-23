@@ -3,6 +3,20 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Node
+node_modules/
+
+# SQLite databases
+*.db
+*.sqlite3
+
+# Large model artifacts
+*.joblib
+*.pkl
+
+# Claude internal
+.claude/
+
 # C extensions
 *.so
 
