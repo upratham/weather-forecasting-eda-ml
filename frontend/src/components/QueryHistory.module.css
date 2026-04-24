@@ -1,0 +1,125 @@
+.wrap { animation: fadeUp 0.3s ease-out; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.error {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.tableWrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: top;
+  color: #cbd5e1;
+}
+
+.table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.locName { font-weight: 600; color: #f1f5f9; }
+.coords  { font-size: 0.72rem; color: #475569; margin-top: 2px; }
+
+.notes   { max-width: 180px; white-space: pre-wrap; word-break: break-word; }
+.noNotes { color: #334155; }
+
+.actions { display: flex; gap: 6px; align-items: center; white-space: nowrap; }
+
+.editBtn {
+  background: rgba(56,189,248,0.1);
+  color: #38bdf8;
+  border: 1px solid rgba(56,189,248,0.25);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+.editBtn:hover { background: rgba(56,189,248,0.2); }
+
+.deleteBtn {
+  background: rgba(248,113,113,0.1);
+  color: #f87171;
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+.deleteBtn:hover:not(:disabled) { background: rgba(248,113,113,0.2); }
+.deleteBtn:disabled { opacity: 0.4; }
+
+.editRow td { background: rgba(56,189,248,0.04); }
+
+.dateInput {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #f1f5f9;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  width: 130px;
+}
+
+.notesInput {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #f1f5f9;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  width: 100%;
+  resize: vertical;
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  color: #fff;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.saveBtn:disabled { opacity: 0.5; }
+
+.cancelBtn {
+  background: rgba(255,255,255,0.06);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}

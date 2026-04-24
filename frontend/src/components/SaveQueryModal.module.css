@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal {
+  background: #1e2535;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 440px;
+  animation: pop 0.25s ease-out;
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.title { font-size: 1.25rem; font-weight: 700; color: #f1f5f9; margin-bottom: 4px; }
+.sub   { font-size: 0.9rem; color: #64748b; margin-bottom: 20px; }
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+.dateRow { display: flex; align-items: center; gap: 8px; }
+.dash    { color: #64748b; }
+
+.input {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #f1f5f9;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: rgba(56,189,248,0.4); }
+
+.textarea {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  color: #f1f5f9;
+  padding: 10px 12px;
+  font-size: 0.875rem;
+  width: 100%;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+.textarea:focus { border-color: rgba(56,189,248,0.4); }
+
+.error {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  font-size: 0.82rem;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.cancelBtn {
+  background: rgba(255,255,255,0.06);
+  color: #94a3b8;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 9px 20px;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+.cancelBtn:hover { background: rgba(255,255,255,0.1); }
+
+.saveBtn {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 9px 24px;
+  font-size: 0.875rem;
+  transition: opacity 0.2s;
+}
+.saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.saveBtn:hover:not(:disabled) { opacity: 0.88; }

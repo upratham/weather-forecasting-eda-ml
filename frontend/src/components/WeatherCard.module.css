@@ -1,0 +1,108 @@
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 20px;
+  padding: 28px;
+  backdrop-filter: blur(12px);
+  animation: fadeUp 0.4s ease-out;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.location {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  line-height: 1.2;
+}
+
+.coords { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+.time   { font-size: 0.78rem; color: #475569; margin-top: 2px; }
+
+.emojiWrap { text-align: center; flex-shrink: 0; }
+.emoji { font-size: 3.5rem; line-height: 1; display: block; }
+.description { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+
+.tempRow {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.tempC {
+  font-size: 3.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.tempF { font-size: 1.6rem; font-weight: 600; color: #94a3b8; }
+.feelsLike { font-size: 0.9rem; color: #64748b; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statIcon  { font-size: 1.1rem; }
+.statLabel { font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+.statValue { font-size: 0.95rem; font-weight: 600; color: #e2e8f0; }
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.mapLink {
+  color: #38bdf8;
+  text-decoration: none;
+  font-size: 0.85rem;
+  padding: 7px 14px;
+  border: 1px solid rgba(56,189,248,0.3);
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.mapLink:hover { background: rgba(56,189,248,0.1); }
+
+.saveBtn {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 7px 18px;
+  border-radius: 20px;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-left: auto;
+}
+.saveBtn:hover { opacity: 0.88; transform: scale(1.02); }
