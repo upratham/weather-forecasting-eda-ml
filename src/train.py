@@ -6,8 +6,13 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import (
+    GradientBoostingRegressor,
+    RandomForestRegressor,
+    StackingRegressor,
+    VotingRegressor,
+)
+from sklearn.linear_model import LinearRegression, Ridge
 
 from .eval import evaluate_regression, summarize_results
 
@@ -38,19 +43,61 @@ def train_gradient_boosting_regressor(
     return model
 
 
+def train_voting_ensemble(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    random_state: int = 42,
+) -> VotingRegressor:
+    """Average predictions of LR + RF + GB (soft voting by mean)."""
+    estimators = [
+        ("lr", LinearRegression()),
+        ("rf", RandomForestRegressor(n_estimators=100, random_state=random_state, n_jobs=-1)),
+        ("gb", GradientBoostingRegressor(n_estimators=100, random_state=random_state)),
+    ]
+    model = VotingRegressor(estimators=estimators, n_jobs=-1)
+    model.fit(X_train, y_train)
+    return model
+
+
+def train_stacking_ensemble(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    random_state: int = 42,
+) -> StackingRegressor:
+    """Stack LR + RF + GB with a Ridge meta-learner using 5-fold CV."""
+    estimators = [
+        ("lr", LinearRegression()),
+        ("rf", RandomForestRegressor(n_estimators=100, random_state=random_state, n_jobs=-1)),
+        ("gb", GradientBoostingRegressor(n_estimators=100, random_state=random_state)),
+    ]
+    model = StackingRegressor(
+        estimators=estimators,
+        final_estimator=Ridge(),
+        cv=5,
+        n_jobs=-1,
+    )
+    model.fit(X_train, y_train)
+    return model
+
+
 def compare_regression_models(
     X_train: pd.DataFrame,
     X_test: pd.DataFrame,
     y_train: pd.Series,
     y_test: pd.Series,
+    include_ensemble: bool = True,
 ) -> tuple[dict[str, object], pd.DataFrame]:
-    """Train a small model suite and return the fitted models plus metrics."""
+    """Train a model suite (base + ensemble) and return fitted models plus metrics."""
 
-    models = {
+    models: dict[str, object] = {
         "linear_regression": train_linear_regression(X_train, y_train),
         "gradient_boosting": train_gradient_boosting_regressor(X_train, y_train),
         "random_forest": train_random_forest_regressor(X_train, y_train),
     }
+    if include_ensemble:
+        models["voting_ensemble"] = train_voting_ensemble(X_train, y_train)
+        models["stacking_ensemble"] = train_stacking_ensemble(X_train, y_train)
+
     metrics = {
         name: evaluate_regression(y_test, model.predict(X_test))
         for name, model in models.items()
