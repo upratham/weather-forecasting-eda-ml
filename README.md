@@ -1,70 +1,63 @@
-# Weather Trend Forecasting
+# WeatherFlow — Full-Stack AI Weather App
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat&logo=python&logoColor=white)
-![Gradio](https://img.shields.io/badge/Gradio-5.0%2B-FF7C00?style=flat&logo=gradio&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?style=flat&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=flat&logo=scikit-learn&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
-> **Tech Assessment Submission — PM Accelerator | Data Scientist / Analyst Track**
+> **Tech Assessment Submission — PM Accelerator | AI Engineer Intern (Full Stack)**
 
 ---
 
-## PM Accelerator Mission
+## PM Accelerator
 
-> *"PM Accelerator's mission is to power the careers of aspiring and early-career product managers by providing world-class mentorship, hands-on real-world project experience, and a thriving global community of peers and industry leaders — accelerating every member's path to product leadership."*
->
-> — [pmaccelerator.io](https://www.pmaccelerator.io)
+**Product Manager Accelerator (PMA)** is a leading community-driven program designed to help professionals break into and advance within product management. Through mentorship from experienced PMs, structured coaching, hands-on projects, and a thriving peer community, PMA accelerates careers in product management across tech, fintech, healthtech, and beyond. PMA offers bootcamps, 1-on-1 coaching, portfolio-building workshops, and job placement support — empowering aspiring and current PMs to land roles at top companies and build products that matter.
+
+> [linkedin.com/company/product-manager-accelerator](https://www.linkedin.com/company/product-manager-accelerator)
 
 ---
 
 ## Overview
 
-An end-to-end weather trend forecasting pipeline built on the **Global Weather Repository** (Kaggle, ~130K observations, 40+ features). The project covers every stage of the data science lifecycle — from raw data ingestion and cleaning through anomaly detection, time-series forecasting, multi-model regression, and a deployed interactive web application.
+**WeatherFlow** is a full-stack weather intelligence application built for the PM Accelerator AI Engineer Intern assessment (both Tech Assessment #1 and #2). It combines a **FastAPI** backend with a **React + Vite** frontend to deliver real-time weather data, CRUD-persistent query history, multi-format data export, and external API integrations — all without requiring any API keys.
 
-### What's Inside
+### Assessments Covered
 
-| Stage | Technique |
+| Requirement | Implementation |
+|------------|---------------|
+| **Frontend (Assessment 1)** | React 18 + Vite, responsive CSS Grid, weather icons, error handling |
+| Location input (city / zip / GPS / landmark) | Open-Meteo geocoding with fuzzy match |
+| Current weather display | Temperature (°C + °F), humidity, wind, UV, pressure, cloud, precipitation |
+| Current location via GPS | Browser Geolocation API |
+| 5-day / 7-day forecast | Open-Meteo forecast API, WMO weather code icons |
+| Responsive design | CSS Grid + Media Queries (desktop, tablet, mobile) |
+| Error handling | Inline banners with dismissal, validation on all inputs |
+| **Backend (Assessment 2)** | FastAPI + SQLAlchemy + SQLite |
+| CRUD — Create | `POST /api/queries` with date range and location validation |
+| CRUD — Read | `GET /api/queries` + `GET /api/queries/{id}` |
+| CRUD — Update | `PUT /api/queries/{id}` with inline edit UI |
+| CRUD — Delete | `DELETE /api/queries/{id}` with confirmation |
+| Date range validation | Server-side: `end_date >= start_date` check |
+| Location validation | Open-Meteo geocoding — returns 404 if location doesn't exist |
+| Data export | JSON, CSV, XML, Markdown via `GET /api/export?fmt=` |
+| Additional API integration | Google Maps link + YouTube search per queried location |
+| Developer name + PM Accelerator info | Header, footer, and dedicated About tab |
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
 |-------|-----------|
-| Data Cleaning | Missing-value imputation, outlier handling, type normalization |
-| EDA | Distribution analysis, correlation heatmaps, temporal trends |
-| Anomaly Detection | Isolation Forest (unsupervised) |
-| Time-Series Forecasting | ARIMA, Facebook Prophet |
-| Regression Modeling | Linear Regression, Random Forest, Gradient Boosting |
-| Ensemble Inference | Random Forest on anomaly-cleaned data (live app) |
-| Web Application | Gradio interactive temperature predictor |
-
----
-
-## Dataset
-
-| Detail | Value |
-|--------|-------|
-| Source | [Kaggle — Global Weather Repository](https://www.kaggle.com/datasets/nelgiriyewithana/global-weather-repository/code) |
-| Rows (raw) | ~130,000+ |
-| Features | 40+ |
-| Time span | May 2024 – April 2026 |
-| Key target | `temperature_celsius` |
-| Geography | Cities worldwide |
-
----
-
-## Results at a Glance
-
-### Regression Models (test set, anomaly-cleaned data)
-
-| Model | MAE | RMSE | R² |
-|-------|-----|------|----|
-| Linear Regression | 0.018 °C | 0.023 °C | **0.9999** |
-| Random Forest | 0.007 °C | 0.193 °C | 0.9996 |
-| Gradient Boosting | 0.049 °C | 0.202 °C | 0.9995 |
-| Gradio App RF | 1.249 °C | 1.844 °C | 0.9594 |
-
-### Time-Series Models (daily temperature forecast)
-
-| Model | MAE | RMSE | MAPE |
-|-------|-----|------|------|
-| ARIMA | 1.202 °C | 1.739 °C | 8.92% |
-| Prophet | 4.390 °C | 5.771 °C | 25.99% |
+| Backend API | FastAPI 0.111, Python 3.9+ |
+| Database | SQLite via SQLAlchemy 2.0 (ORM) |
+| HTTP client | httpx (async) |
+| Frontend | React 18, Vite 5, CSS Modules |
+| Weather data | [Open-Meteo](https://open-meteo.com) — free, no API key required |
+| Geocoding | Open-Meteo Geocoding API — fuzzy location matching |
+| ML (notebooks) | scikit-learn, statsmodels, Prophet, XGBoost |
 
 ---
 
@@ -72,35 +65,79 @@ An end-to-end weather trend forecasting pipeline built on the **Global Weather R
 
 ```
 weather-forecasting-eda-ml/
+├── backend/                           # FastAPI application
+│   ├── __init__.py
+│   ├── main.py                        # All routes: weather, CRUD, export, static serving
+│   ├── database.py                    # SQLAlchemy engine + session factory
+│   ├── models.py                      # WeatherQuery ORM model
+│   └── schemas.py                     # Pydantic request/response schemas
+│
+├── frontend/                          # React + Vite application
+│   ├── package.json
+│   ├── vite.config.js                 # Dev proxy → FastAPI on :8000
+│   ├── index.html
+│   └── src/
+│       ├── App.jsx                    # Root component + state management
+│       ├── App.module.css
+│       ├── index.css                  # Global CSS variables + resets
+│       ├── main.jsx
+│       ├── services/
+│       │   └── api.js                 # Fetch wrappers for every API endpoint
+│       └── components/
+│           ├── SearchBar.jsx          # Location search + GPS button
+│           ├── WeatherCard.jsx        # Current weather display
+│           ├── ForecastGrid.jsx       # 7-day forecast grid
+│           ├── SaveQueryModal.jsx     # Date range + notes → POST /api/queries
+│           ├── QueryHistory.jsx       # CRUD table with inline edit
+│           ├── ExportPanel.jsx        # JSON / CSV / XML / Markdown download
+│           └── AboutSection.jsx       # Developer + PM Accelerator info
+│
 ├── data/
-│   ├── raw/                               # GlobalWeatherRepository.csv (~35 MB)
-│   ├── processed/                         # Cleaned, scored, and filtered datasets
-│   └── cleaned/                           # weather_cleaned.csv
+│   ├── raw/                           # GlobalWeatherRepository.csv (~35 MB)
+│   ├── processed/                     # Cleaned + anomaly-filtered datasets
+│   └── cleaned/
 ├── notebooks/
-│   ├── 01_data_cleaning.ipynb             # Missing values, outliers, type fixes
-│   ├── 02_eda.ipynb                       # Distributions, correlations, trends
-│   ├── 03_anomaly_analysis.ipynb          # Isolation Forest anomaly detection
-│   ├── 04_time_series_forecasting.ipynb   # ARIMA + Prophet daily forecasting
-│   └── 05_ml_models.ipynb                 # Regression model comparison
+│   ├── 01_data_cleaning.ipynb
+│   ├── 02_eda.ipynb
+│   ├── 03_anomaly_analysis.ipynb
+│   ├── 04_time_series_forecasting.ipynb
+│   ├── 05_ml_models.ipynb
+│   └── 06_advanced_analyses.ipynb            # Ensemble, spatial maps, climate analysis
 ├── src/
-│   ├── preprocessing.py                   # Data loading & anomaly scoring
-│   ├── features.py                        # Feature engineering & app columns
-│   ├── train.py                           # Model training helpers
-│   ├── eval.py                            # Regression & forecast metrics
-│   └── visualize.py                       # Plotting utilities
-├── models/                                # Persisted .joblib model files
+│   ├── preprocessing.py               # Data loading, cleaning, anomaly detection
+│   ├── features.py                    # Feature engineering helpers
+│   ├── train.py                       # Model training utilities
+│   ├── eval.py                        # Regression + forecast metrics
+│   └── visualize.py                   # Plotting utilities
 ├── reports/
-│   ├── figures/                           # PNG charts from analyses
-│   │   ├── anomaly_temperature_humidity.png
-│   │   ├── anomaly_top_countries.png
-│   │   └── forecast_comparison.png
-│   ├── forecast_metrics.csv               # ARIMA / Prophet test metrics
-│   ├── temperature_model_metrics.csv      # Regression model metrics
-│   └── weather_forecasting_report.md      # Full analysis report (this project)
-├── app.py                                 # Gradio web application
+│   ├── weather_forecasting_report.md  # Full analysis report
+│   ├── forecast_metrics.csv
+│   └── temperature_model_metrics.csv
+├── run.py                             # Entry point — starts uvicorn
 ├── requirements.txt
-└── pyproject.toml
+└── weather_app.db                     # SQLite database (auto-created on first run)
 ```
+
+---
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/weather?location=London` | Real-time weather + 7-day forecast |
+| `GET` | `/api/weather?lat=51.5&lon=-0.12` | Same, by coordinates |
+| `GET` | `/api/geocode?query=New+York` | Validate and resolve a location |
+| `POST` | `/api/queries` | Save a weather query to the database |
+| `GET` | `/api/queries` | List all saved queries |
+| `GET` | `/api/queries/{id}` | Get a single query |
+| `PUT` | `/api/queries/{id}` | Update notes / date range |
+| `DELETE` | `/api/queries/{id}` | Delete a query |
+| `GET` | `/api/export?fmt=json` | Export all queries as JSON |
+| `GET` | `/api/export?fmt=csv` | Export as CSV |
+| `GET` | `/api/export?fmt=xml` | Export as XML |
+| `GET` | `/api/export?fmt=markdown` | Export as Markdown table |
+
+Interactive docs available at **`http://localhost:8000/docs`** (Swagger UI).
 
 ---
 
@@ -113,7 +150,7 @@ git clone https://github.com/upratham/weather-forecasting-eda-ml.git
 cd weather-forecasting-eda-ml
 ```
 
-### 2. Create a virtual environment
+### 2. Create and activate a virtual environment
 
 ```bash
 python -m venv .venv
@@ -125,15 +162,72 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install dependencies
+### 3. Install Python dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Download the dataset
+### 4. Install frontend dependencies
 
-Place `GlobalWeatherRepository.csv` in `data/raw/`. Download from Kaggle:
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+---
+
+## Running the App
+
+### Option A — Production (single server on port 8000)
+
+```bash
+# Build the React frontend first
+cd frontend && npm run build && cd ..
+
+# Start the FastAPI backend — serves both API and built UI
+python run.py
+```
+
+Open **http://localhost:8000**
+
+### Option B — Development (hot reload on both sides)
+
+```bash
+# Terminal 1 — FastAPI backend
+python run.py
+
+# Terminal 2 — React dev server (proxies /api to :8000)
+cd frontend && npm run dev
+```
+
+Open **http://localhost:5173**
+
+> The SQLite database (`weather_app.db`) is created automatically in the project root on first startup. No database setup is required.
+
+---
+
+## ML Notebooks
+
+The `notebooks/` folder contains the full data science pipeline used to analyze the Global Weather Repository dataset. Run them in order for the complete pipeline:
+
+```bash
+jupyter notebook
+```
+
+| Notebook | Description |
+|----------|-------------|
+| `01_data_cleaning.ipynb` | Missing values, outliers, type normalization |
+| `02_eda.ipynb` | Distributions, correlations, temporal trends, air quality |
+| `03_anomaly_analysis.ipynb` | Isolation Forest anomaly detection |
+| `04_time_series_forecasting.ipynb` | ARIMA vs Prophet comparison |
+| `05_ml_models.ipynb` | Linear Regression, Random Forest, Gradient Boosting |
+| `06_advanced_analyses.ipynb` | Ensemble models, spatial maps, climate zone analysis |
+
+### Dataset
+
+Download `GlobalWeatherRepository.csv` (~35 MB) from Kaggle and place in `data/raw/`:
 
 ```bash
 kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/raw/ --unzip
@@ -141,72 +235,53 @@ kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/r
 
 ---
 
-## Running the Notebooks
+## ML Results at a Glance
 
-Run notebooks in order for the full pipeline:
+### Regression Models (test set, anomaly-cleaned data)
 
-```bash
-jupyter notebook
-```
+| Model | MAE | RMSE | R² |
+|-------|-----|------|----|
+| Linear Regression | 0.018 °C | 0.023 °C | **0.9999** |
+| Random Forest | 0.007 °C | 0.193 °C | 0.9996 |
+| Gradient Boosting | 0.049 °C | 0.202 °C | 0.9995 |
+| Voting Ensemble (LR+RF+GB) | see `reports/ensemble_metrics.csv` | — | — |
+| Stacking Ensemble (Ridge meta) | see `reports/ensemble_metrics.csv` | — | — |
 
-Open in sequence:
+### Time-Series Models (daily temperature forecast)
 
-| Notebook | What it does |
-|----------|-------------|
-| `01_data_cleaning.ipynb` | Cleans raw CSV, handles missing values and type errors |
-| `02_eda.ipynb` | Distributions, correlation heatmaps, temporal trends |
-| `03_anomaly_analysis.ipynb` | Isolation Forest — flags and removes anomalous readings |
-| `04_time_series_forecasting.ipynb` | Trains and compares ARIMA vs Prophet |
-| `05_ml_models.ipynb` | Trains Linear Regression, Random Forest, Gradient Boosting |
+| Model | MAE | RMSE | MAPE |
+|-------|-----|------|------|
+| ARIMA | 1.202 °C | 1.739 °C | 8.92% |
+| Prophet | 4.390 °C | 5.771 °C | 25.99% |
 
----
-
-## Running the Gradio App
-
-```bash
-python app.py
-```
-
-The app launches in your browser. On first run it trains a Random Forest model automatically, then serves an interactive form where you can enter any weather snapshot (latitude, longitude, pressure, humidity, cloud cover, wind, precipitation, visibility, UV index) and receive an instant temperature prediction in both **Celsius** and **Fahrenheit** with full input validation and model metadata.
-
----
-
-## Key Findings
-
-- **Location is the strongest predictor.** Latitude and longitude account for the largest share of temperature variance across all models.
-- **Random Forest achieves near-perfect R² (0.9996)** on the multi-feature regression task against held-out data.
-- **ARIMA outperforms Prophet** on the daily time-series task (MAPE 8.92% vs 25.99%), as the 22-month window is too short for Prophet's seasonal decomposition to converge reliably.
-- **Anomaly detection flagged ~5.2% of records** — concentrated in Indonesia, China, India, and Gulf states — driven by sensor malfunctions and extreme climate conditions.
-- **Humidity and UV index are the strongest non-spatial predictors** of temperature after location and time.
-
----
-
-## Full Report
-
-A detailed written report with embedded visualizations, methodology explanations, model evaluation tables, and findings is available at:
-
-**[`reports/weather_forecasting_report.md`](reports/weather_forecasting_report.md)**
+Full findings in **[`reports/weather_forecasting_report.md`](reports/weather_forecasting_report.md)**
 
 ---
 
 ## Requirements
 
-Key packages (see [`requirements.txt`](requirements.txt) for full list):
+Key packages (full list in [`requirements.txt`](requirements.txt)):
 
 ```
-pandas>=2.0.0        numpy>=1.24.0
-scikit-learn>=1.3.0  statsmodels>=0.14.0
-prophet>=1.1.0       gradio>=5.0.0
-matplotlib>=3.7.0    seaborn>=0.12.0
-plotly>=5.15.0       xgboost>=1.7.0
-joblib>=1.3.0        jupyter>=1.0.0
+# Backend
+fastapi>=0.111.0      uvicorn[standard]>=0.29.0
+httpx>=0.27.0         sqlalchemy>=2.0.0
+aiofiles>=23.2.0      python-multipart>=0.0.9
+
+# ML / notebooks
+pandas>=2.0.0         numpy>=1.24.0
+scikit-learn>=1.3.0   statsmodels>=0.14.0
+matplotlib>=3.7.0     plotly>=5.15.0
+joblib>=1.3.0         jupyter>=1.0.0
 ```
+
+Frontend: Node.js 18+ with npm.
 
 ---
 
 ## Demo Video
 
-*A 1–2 minute screen recording walking through the notebooks and the live Gradio app:*
+*A 1–2 minute screen recording walking through the app and key features:*
 `[Add your Google Drive / YouTube / Vimeo link here]`
 
 ---
@@ -214,4 +289,4 @@ joblib>=1.3.0        jupyter>=1.0.0
 ## Author
 
 **Prathamesh Suhas Uravane**
-Submitted for PM Accelerator — Data Scientist / Analyst Tech Assessment
+Submitted for PM Accelerator — AI Engineer Intern Technical Assessment (Full Stack)

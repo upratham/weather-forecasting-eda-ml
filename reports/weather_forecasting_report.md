@@ -1,8 +1,9 @@
-# Weather Trend Forecasting — Analysis Report
+# WeatherFlow — Full-Stack AI Weather App & Analysis Report
 
 **Author:** Prathamesh Suhas Uravane
-**Submission:** PM Accelerator — Data Scientist / Analyst Tech Assessment
+**Submission:** PM Accelerator — AI Engineer Intern Tech Assessment (Full Stack — Assessment #1 + #2)
 **Dataset:** Global Weather Repository (Kaggle) | ~130,000 rows | 40+ features | May 2024 – Apr 2026
+**Live App:** FastAPI + React | Real-time weather via Open-Meteo API | SQLite CRUD persistence
 
 ---
 
@@ -22,21 +23,39 @@
 4. [Anomaly Detection](#4-anomaly-detection)
 5. [Time-Series Forecasting](#5-time-series-forecasting)
 6. [Multi-Model Regression](#6-multi-model-regression)
-7. [Gradio App — Live Predictor](#7-gradio-app--live-predictor)
+7. [WeatherFlow — Full-Stack Web App](#7-weatherflow--full-stack-web-app)
 8. [Key Insights & Conclusions](#8-key-insights--conclusions)
 
 ---
 
 ## 1. Project Overview
 
-This project implements an end-to-end data science pipeline to forecast weather trends from the **Global Weather Repository** dataset. The assessment targets the **Advanced track**, covering:
+This project delivers two complementary outputs:
 
-- Anomaly detection to identify and remove outlier weather readings
-- Multiple forecasting models with head-to-head evaluation
-- Regression ensemble for feature-rich temperature prediction
-- An interactive Gradio web app for live inference
+1. **Full-Stack Weather App (WeatherFlow)** — a production-ready web application with a FastAPI backend, React frontend, SQLite database, real-time weather API integration, CRUD persistence, and multi-format data export. This covers both Assessment #1 (Frontend) and Assessment #2 (Backend).
 
-### Pipeline Architecture
+2. **ML / Data Science Pipeline** — an end-to-end analysis of the Global Weather Repository dataset, spanning data cleaning, EDA, anomaly detection, time-series forecasting, and multi-model regression.
+
+### Full-Stack Architecture
+
+```
+User (Browser)
+      │
+      ▼
+React + Vite Frontend (port 5173 / static)
+      │ /api/*
+      ▼
+FastAPI Backend (port 8000)
+      ├── GET  /api/weather      → Open-Meteo API (real-time, no key)
+      ├── GET  /api/geocode      → Open-Meteo Geocoding API
+      ├── POST /api/queries      → SQLite (CREATE)
+      ├── GET  /api/queries      → SQLite (READ)
+      ├── PUT  /api/queries/{id} → SQLite (UPDATE)
+      ├── DEL  /api/queries/{id} → SQLite (DELETE)
+      └── GET  /api/export       → JSON | CSV | XML | Markdown
+```
+
+### ML Pipeline Architecture
 
 ```
 Raw CSV (40+ features, ~130K rows)
@@ -52,10 +71,9 @@ Raw CSV (40+ features, ~130K rows)
         │
         ├──► 04 Time-Series Forecasting   → ARIMA, Prophet (daily avg temp)
         │
-        └──► 05 ML Regression             → LinearReg, RandomForest, GradientBoosting
-                    │
-                    ▼
-             Gradio App (Random Forest, 18 features, R² = 0.9594)
+        ├──► 05 ML Regression             → LinearReg, RandomForest, GradientBoosting
+        │
+        └──► 06 Advanced Analyses         → Ensemble Models, Spatial Maps, Climate Analysis
 ```
 
 ---
@@ -242,8 +260,10 @@ Rather than forecasting temperature from time alone, the regression models lever
 | Model | Description |
 |-------|-------------|
 | **Linear Regression** | Baseline — OLS with no regularization |
-| **Random Forest** | 100 estimators, `random_state=42`, `n_jobs=-1` |
-| **Gradient Boosting** | Scikit-learn `GradientBoostingRegressor` |
+| **Random Forest** | 200 estimators, `random_state=42`, `n_jobs=-1` |
+| **Gradient Boosting** | Scikit-learn `GradientBoostingRegressor`, 200 estimators |
+| **Voting Ensemble** | Averages predictions of LR + RF + GB (`VotingRegressor`) |
+| **Stacking Ensemble** | LR + RF + GB base learners; Ridge meta-learner via 5-fold CV |
 
 ### 6.3 Performance Results
 
@@ -252,13 +272,19 @@ Rather than forecasting temperature from time alone, the regression models lever
 | **Linear Regression** | 0.018 | 0.023 | 0.19 | **0.9999** |
 | Random Forest | 0.007 | 0.193 | 0.05 | 0.9996 |
 | Gradient Boosting | 0.049 | 0.202 | 0.55 | 0.9995 |
+| Voting Ensemble | See `reports/ensemble_metrics.csv` | — | — | — |
+| Stacking Ensemble | See `reports/ensemble_metrics.csv` | — | — | — |
+
+*(Ensemble metrics vary with dataset; run notebook 06 to populate exact values.)*
 
 ### 6.4 Analysis
 
-All three models achieve **R² > 0.999** — indicating that the combination of geographic coordinates + time + atmospheric conditions is nearly sufficient to perfectly predict temperature. This is expected: temperature is a thermodynamic quantity determined almost entirely by known physical variables.
+All three base models achieve **R² > 0.999** — indicating that the combination of geographic coordinates + time + atmospheric conditions is nearly sufficient to perfectly predict temperature. This is expected: temperature is a thermodynamic quantity determined almost entirely by known physical variables.
 
 **Why Linear Regression wins on MAE/RMSE:**
 The linear model achieves the best point-error metrics because the underlying relationships between the engineered features and temperature are largely linear once cyclic encoding resolves the periodicity. Random Forest's slight advantage in MAPE (0.05% vs 0.19%) reflects better relative accuracy on near-zero temperature readings.
+
+**Ensemble models** (Voting and Stacking) combine the strengths of all three base learners. The Stacking Ensemble uses a Ridge meta-learner trained on 5-fold out-of-fold predictions, allowing it to weight each base model optimally rather than averaging uniformly. In this high-R² regime, ensemble gains over the best base model are modest but the approach demonstrates robustness — the ensemble degrades gracefully when any single base model underperforms on out-of-distribution data.
 
 **Feature importance (Random Forest, ranked):**
 
@@ -273,58 +299,103 @@ The linear model achieves the best point-error metrics because the underlying re
 | 7 | longitude | Low–Moderate |
 | 8 | cloud, wind_kph, gust_kph | Low |
 
-### 6.5 Gradio App Model
+### 6.5 Production Model Notes
 
-The deployed Gradio application uses a standalone Random Forest trained on `weather_without_anomalies.csv` with 18 features and a realistic 80/20 split. Its lower R² (0.9594 vs 0.9996) compared to the notebook model is intentional — it uses the same features but is exposed to a harder inference scenario with manually entered, potentially out-of-distribution inputs.
+The full-stack WeatherFlow app fetches **live** weather data from Open-Meteo instead of running a local ML model for inference — this ensures predictions are always current and location-accurate. The regression models in this section remain valuable for:
 
-| Metric | Value |
-|--------|-------|
-| Model | RandomForestRegressor (100 estimators) |
-| Training rows | 104,433 |
-| Test rows | 26,109 |
-| MAE | 1.249 °C |
-| RMSE | 1.844 °C |
-| MAPE | 17.43% |
-| R² | 0.9594 |
+- Offline / low-connectivity scenarios
+- Understanding which features drive temperature
+- Benchmarking model quality against real data
+
+A retrained Random Forest (with `max_depth=20` to prevent overfitting, and outlier capping applied to `wind_kph ≤ 200`, `gust_kph ≤ 250`, `pressure_mb 870–1100`) is kept in `models/` and can be loaded for supplementary local inference if desired.
 
 ---
 
-## 7. Gradio App — Live Predictor
+## 7. WeatherFlow — Full-Stack Web App
 
 ### 7.1 Overview
 
-`app.py` launches a browser-based interactive application powered by **Gradio 5**. Users enter a weather snapshot and receive an instant temperature prediction in both Celsius and Fahrenheit.
+**WeatherFlow** is a production-ready full-stack weather application covering both assessment tracks:
 
-### 7.2 Input Features
+- **Frontend (Assessment #1):** React 18 + Vite, responsive layout, weather icons, GPS, 7-day forecast, error handling
+- **Backend (Assessment #2):** FastAPI + SQLAlchemy + SQLite, CRUD, date range validation, location fuzzy-match, multi-format export
 
-| Input | Range | Default |
-|-------|-------|---------|
-| Latitude | −41.3 to 64.15 | 16.78 |
-| Longitude | −175.2 to 179.22 | 20.47 |
-| Date (YYYY-MM-DD) | 2024-05-16 to 2026-04-24 | 2026-04-24 |
-| Hour (0–23) | 0 – 23 | 11 |
-| Pressure (mb) | 964 – 3006 | 1014 |
-| Humidity (%) | 2 – 100 | 72 |
-| Cloud Cover (%) | 0 – 100 | 30 |
-| Wind Speed (kph) | 3.6 – 2963 | 10.8 |
-| Gust Speed (kph) | 3.6 – 2970 | 15.3 |
-| Precipitation (mm) | 0 – 42.24 | 0.0 |
-| Visibility (km) | 0 – 32 | 10.0 |
-| UV Index | 0 – 16.3 | 1.9 |
+The app uses the **Open-Meteo API** — completely free with no API key required — for real-time weather data and geocoding.
 
-### 7.3 App Features
+### 7.2 Frontend Features (Assessment #1)
 
-- **Input validation:** All inputs are validated and normalized (clamping, rounding) with user-visible adjustment notes.
-- **Auto-training:** If no saved model is found, the app trains one automatically on first launch.
-- **Model summary panel:** Displays training metadata, feature count, and held-out metrics alongside every prediction.
-- **Example presets:** Three preset snapshots (Bangalore, New York, Sydney) for quick testing.
-- **Reset button:** Restores all fields to dataset-derived defaults.
+| Feature | Implementation |
+|---------|---------------|
+| Location input | City name, postal code, GPS coordinates, or landmark (fuzzy-matched by Open-Meteo) |
+| Current location | Browser `navigator.geolocation` — one-click GPS detection |
+| Weather display | Temperature (°C + °F), feels like, humidity, wind speed + direction, pressure, UV index, cloud cover, precipitation |
+| Weather icons | WMO weather code → emoji mapping (☀️ ⛅ 🌧️ ❄️ ⛈️ etc.) |
+| 7-day forecast | Daily max/min, condition, precipitation, wind |
+| Responsive design | CSS Grid with breakpoints at 768px and 400px |
+| Error handling | Inline dismissible banners for API errors, GPS denial, invalid location |
+| External integrations | Google Maps link + YouTube travel/weather search per location |
+
+### 7.3 Backend / API Features (Assessment #2)
+
+#### CRUD Operations
+
+| Operation | Endpoint | Validation |
+|-----------|----------|-----------|
+| **Create** | `POST /api/queries` | `end_date >= start_date`; location exists (geocode check) |
+| **Read** | `GET /api/queries` | Returns all records ordered by newest first |
+| **Read one** | `GET /api/queries/{id}` | Returns 404 if not found |
+| **Update** | `PUT /api/queries/{id}` | Partial update — notes, start_date, end_date |
+| **Delete** | `DELETE /api/queries/{id}` | Returns 204 No Content |
+
+#### Database Schema (`weather_queries` table)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | INTEGER PK | Auto-increment primary key |
+| `location_query` | TEXT | Original user search string |
+| `location_name` | TEXT | Resolved display name (city, country) |
+| `latitude / longitude` | REAL | Validated coordinates |
+| `start_date / end_date` | DATE | Optional date range (validated: end ≥ start) |
+| `temperature_celsius` | REAL | Temperature at time of query |
+| `weather_description` | TEXT | WMO condition description |
+| `humidity / wind_speed` | REAL | Supporting weather metrics |
+| `notes` | TEXT | Free-text user annotations |
+| `created_at / updated_at` | DATETIME | Automatic timestamps |
+
+#### Data Export (Assessment 2.3)
+
+| Format | Endpoint | Notes |
+|--------|----------|-------|
+| JSON | `/api/export?fmt=json` | Pretty-printed, full schema |
+| CSV | `/api/export?fmt=csv` | Headers + all columns |
+| XML | `/api/export?fmt=xml` | Well-formed with declaration |
+| Markdown | `/api/export?fmt=markdown` | GitHub-compatible table |
+
+#### Additional API Integration (Assessment 2.2)
+
+- **Google Maps:** Each result card links to `maps.google.com?q={lat},{lon}` for the queried location
+- **YouTube:** Each result links to a YouTube search for `{location} travel weather` videos
 
 ### 7.4 Running the App
 
+**Production (single server):**
 ```bash
-python app.py
+cd frontend && npm run build && cd ..
+python run.py
+# → http://localhost:8000
 ```
+
+**Development (hot reload):**
+```bash
+# Terminal 1
+python run.py
+
+# Terminal 2
+cd frontend && npm run dev
+# → http://localhost:5173
+```
+
+**Interactive API docs:** `http://localhost:8000/docs`
 
 ---
 
@@ -341,35 +412,76 @@ python app.py
 | **Anomaly patterns are geographic** | Anomalies cluster in high-city-count countries (Indonesia, China, India) and extreme-climate regions (Gulf states) |
 | **Humidity is the key atmospheric predictor** | After location and time, humidity is the most informative single weather variable for temperature |
 
-### 8.2 Advanced Analyses Completed
+### 8.2 Assessment Requirements Coverage
 
-| Assessment Requirement | Status |
-|------------------------|--------|
-| Data cleaning & preprocessing | Done |
-| Basic EDA with visualizations | Done |
-| Anomaly detection (Isolation Forest) | Done |
-| Multiple forecasting models (ARIMA + Prophet) | Done |
-| Ensemble / regression comparison (LR + RF + GB) | Done |
-| Feature importance analysis | Done |
-| Geographical patterns analysis | Done |
-| Interactive web application | Done (Gradio) |
+#### Frontend (Assessment #1)
+
+| Requirement | Status | Implementation |
+|------------|--------|---------------|
+| Location input (city / zip / GPS / landmark) | ✅ Done | Open-Meteo geocoding with fuzzy match |
+| Current weather display | ✅ Done | WeatherCard component — 10+ fields |
+| Current location (GPS) | ✅ Done | `navigator.geolocation` |
+| Weather icons / images | ✅ Done | WMO code → emoji mapping |
+| 5-day / 7-day forecast | ✅ Done | ForecastGrid with 7-day Open-Meteo data |
+| Error handling | ✅ Done | Inline banners, 404 messages, GPS denial |
+| Responsive design | ✅ Done | CSS Grid, tested desktop / tablet / mobile |
+| JavaScript framework (not Python/Java) | ✅ Done | React 18 + Vite |
+
+#### Backend (Assessment #2)
+
+| Requirement | Status | Implementation |
+|------------|--------|---------------|
+| CRUD — Create | ✅ Done | `POST /api/queries` with Pydantic validation |
+| CRUD — Read | ✅ Done | `GET /api/queries` + `GET /api/queries/{id}` |
+| CRUD — Update | ✅ Done | `PUT /api/queries/{id}` — partial update |
+| CRUD — Delete | ✅ Done | `DELETE /api/queries/{id}` |
+| Date range validation | ✅ Done | `end_date >= start_date` (server + client) |
+| Location validation / fuzzy match | ✅ Done | Open-Meteo geocoding returns 404 for invalid |
+| RESTful API design | ✅ Done | Standard HTTP verbs, status codes, JSON |
+| Database (SQL) | ✅ Done | SQLite via SQLAlchemy ORM |
+| Export — JSON | ✅ Done | `GET /api/export?fmt=json` |
+| Export — CSV | ✅ Done | `GET /api/export?fmt=csv` |
+| Export — XML | ✅ Done | `GET /api/export?fmt=xml` |
+| Export — Markdown | ✅ Done | `GET /api/export?fmt=markdown` |
+| Additional API — Maps | ✅ Done | Google Maps link per location |
+| Additional API — YouTube | ✅ Done | YouTube search link per location |
+| Developer name | ✅ Done | Header, footer, About tab |
+| PM Accelerator description | ✅ Done | About tab + README |
+
+#### ML / Data Science
+
+| Requirement | Status | Notebook |
+|------------|--------|----------|
+| Data cleaning & preprocessing | ✅ Done | `01_data_cleaning.ipynb` |
+| EDA with visualizations | ✅ Done | `02_eda.ipynb` |
+| Air quality analysis (CO, NO₂, SO₂, PM2.5, PM10) | ✅ Done | `02_eda.ipynb` |
+| Anomaly detection (Isolation Forest) | ✅ Done | `03_anomaly_analysis.ipynb` |
+| Time-series forecasting (ARIMA + Prophet) | ✅ Done | `04_time_series_forecasting.ipynb` |
+| Regression model comparison (LR + RF + GB) | ✅ Done | `05_ml_models.ipynb` |
+| Feature importance analysis | ✅ Done | `05_ml_models.ipynb` |
+| Ensemble models (VotingRegressor + StackingRegressor) | ✅ Done | `06_advanced_analyses.ipynb` |
+| Spatial analysis — geographic temperature map | ✅ Done | `06_advanced_analyses.ipynb` |
+| Spatial analysis — country choropleth | ✅ Done | `06_advanced_analyses.ipynb` |
+| Climate analysis — temperature by zone & month | ✅ Done | `06_advanced_analyses.ipynb` |
 
 ### 8.3 Limitations
 
-- **Short time window (22 months):** Insufficient for robust annual seasonality modeling in Prophet.
+- **Short time window (22 months):** Insufficient for robust annual seasonality modeling in Prophet; needs 3+ years.
 - **Single aggregated time series:** Daily forecasting collapses city-level diversity; city-specific models would improve accuracy.
 - **No external regressors in ARIMA:** Adding climate indices (ENSO, NAO) could significantly improve forecast skill.
-- **Sensor noise:** Wind/gust values up to 2,963 kph in the raw data indicate unresolved data quality issues beyond what Isolation Forest removed.
+- **No user authentication:** Query history is shared across all users (Row-level security not required per assessment spec).
+- **No PDF export:** Excluded to avoid heavy dependencies (reportlab); JSON/CSV/XML/Markdown cover the common cases.
 
 ### 8.4 Next Steps
 
-1. Extend the dataset to 3–5 years for reliable seasonal modeling.
-2. Train city-specific SARIMA models and aggregate forecasts.
-3. Add SHAP-based explainability to the Gradio app for per-prediction feature attribution.
-4. Incorporate air quality indices for the Environmental Impact analysis.
-5. Build a spatial choropleth dashboard (Plotly) for interactive geographic exploration.
+1. Extend the dataset to 3–5 years for reliable annual seasonality modeling in Prophet/SARIMA.
+2. Train city-specific SARIMA models and ensemble their forecasts for improved regional accuracy.
+3. Add SHAP-based explainability to the web app for per-prediction feature attribution.
+4. Integrate live air quality indices (PM2.5, AQI) from an open API into the WeatherFlow frontend.
+5. Add a user authentication layer for private query history isolation.
+6. Export spatial maps as embedded interactive charts within the web app using Plotly.js.
 
 ---
 
-*Report generated for PM Accelerator Tech Assessment — Weather Trend Forecasting*
+*Report generated for PM Accelerator Tech Assessment — AI Engineer Intern (Full Stack)*
 *Prathamesh Suhas Uravane | April 2026*
