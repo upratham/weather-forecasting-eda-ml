@@ -5,6 +5,8 @@
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
 ![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=flat&logo=scikit-learn&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat&logo=vercel&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
 > **Tech Assessment Submission — PM Accelerator | AI Engineer Intern (Full Stack)**
@@ -58,6 +60,8 @@
 | Weather data | [Open-Meteo](https://open-meteo.com) — free, no API key required |
 | Geocoding | Open-Meteo Geocoding API — fuzzy location matching |
 | ML (notebooks) | scikit-learn, statsmodels, Prophet, XGBoost |
+| Containerisation | Docker (multi-stage: Node 20 + Python 3.11-slim) |
+| Serverless deploy | Vercel (Python runtime via Mangum + static React build) |
 
 ---
 
@@ -113,6 +117,11 @@ weather-forecasting-eda-ml/
 │   ├── weather_forecasting_report.md  # Full analysis report
 │   ├── forecast_metrics.csv
 │   └── temperature_model_metrics.csv
+├── api/
+│   └── index.py                       # Vercel serverless entry point (Mangum adapter)
+├── Dockerfile                         # Multi-stage Docker build (frontend + backend)
+├── vercel.json                        # Vercel deployment configuration
+├── requirements-vercel.txt            # Lightweight deps for Vercel (no heavy ML stack)
 ├── run.py                             # Entry point — starts uvicorn
 ├── requirements.txt
 └── weather_app.db                     # SQLite database (auto-created on first run)
@@ -138,6 +147,37 @@ weather-forecasting-eda-ml/
 | `GET` | `/api/export?fmt=markdown` | Export as Markdown table |
 
 Interactive docs available at **`http://localhost:8000/docs`** (Swagger UI).
+
+---
+
+## Deployment
+
+### Docker
+
+```bash
+# Build the image
+docker build -t weatherflow .
+
+# Run — database persists in a named volume
+docker run -p 8000:8000 -v weatherflow_data:/app/data weatherflow
+```
+
+Open **http://localhost:8000**
+
+### Vercel
+
+The project includes a pre-configured [`vercel.json`](vercel.json). Deploy with:
+
+```bash
+vercel deploy
+```
+
+The Vercel build:
+- Compiles the React frontend (`frontend/`) into static assets
+- Wraps the FastAPI backend in a Python serverless function via [Mangum](https://mangum.faizanbashir.me/) (`api/index.py`)
+- Routes `/api/*` to the serverless function and all other paths to the static React build
+
+> **Note:** Vercel's serverless environment is ephemeral — the SQLite database will not persist between invocations. For production persistence, swap `DATABASE_URL` to a hosted database (PostgreSQL, PlanetScale, etc.).
 
 ---
 
@@ -282,7 +322,17 @@ Frontend: Node.js 18+ with npm.
 ## Demo Video
 
 *A 1–2 minute screen recording walking through the app and key features:*
+
 `[Add your Google Drive / YouTube / Vimeo link here]`
+
+**Recording script outline:**
+1. Start the app (`python run.py`) and open `http://localhost:8000`
+2. Search a city — show current weather card and 7-day forecast
+3. Click **Save Query** — fill in dates and notes, submit
+4. Open **History** tab — show the saved entry, edit notes inline, then delete
+5. Open **Export** tab — download CSV and show the file
+6. Briefly open `/docs` (Swagger UI) to show the live API
+7. Optional: show a notebook cell and one ML result chart
 
 ---
 
