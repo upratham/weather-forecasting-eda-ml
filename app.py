@@ -1,17 +1,25 @@
 from __future__ import annotations
 
 import json
+import logging
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import joblib
+# Load .env so Modal credentials are available when running locally.
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ModuleNotFoundError:
+    pass
+
+logger = logging.getLogger(__name__)
 
 
-import json
-from datetime import datetime
-from pathlib import Path
-from typing import Any
+def _is_on_modal() -> bool:
+    """True when executing inside a Modal container."""
+    return bool(os.environ.get("MODAL_TASK_ID"))
 
 import joblib
 import numpy as np
@@ -53,7 +61,7 @@ APP_THEME = gr.themes.Soft(
     body_background_fill_dark="linear-gradient(135deg, #1e3a8a 0%, #312e81 100%)",
 )
 
-# Enhanced CSS with modern design
+# Enhanced CSS with modern design and IMPROVED CONTRAST
 APP_CSS = """
 /* Global container styling */
 .gradio-container {
@@ -61,13 +69,13 @@ APP_CSS = """
     min-height: 100vh;
 }
 
-/* Hero section with glassmorphism */
+/* Hero section with glassmorphism - IMPROVED CONTRAST */
 .hero {
     padding: 2rem 2.5rem;
     margin: 1rem 0 2rem 0;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.25);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 
@@ -79,29 +87,26 @@ APP_CSS = """
     font-family: 'Inter', sans-serif;
     font-size: 2.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #1e293b;
     margin: 0 0 0.5rem 0;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
 .hero p {
-    color: rgba(255, 255, 255, 0.95);
+    color: #334155;
     font-size: 1.1rem;
-    font-weight: 400;
+    font-weight: 500;
     margin: 0;
     line-height: 1.6;
 }
 
-/* Panel styling with glassmorphism */
+/* Panel styling with glassmorphism - IMPROVED CONTRAST */
 .panel {
     padding: 1.5rem 1.8rem;
     margin: 0.5rem 0;
     border: 2px solid rgba(255, 255, 255, 0.25);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15),
@@ -119,9 +124,9 @@ APP_CSS = """
     font-family: 'Inter', sans-serif;
     font-size: 1.3rem;
     font-weight: 700;
-    color: #ffffff;
+    color: #1e293b;
     margin: 0 0 1rem 0;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
 /* Input field styling */
@@ -129,8 +134,8 @@ input[type="number"],
 input[type="text"], 
 .gr-text-input,
 .gr-number-input {
-    background: rgba(255, 255, 255, 0.9) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
     border-radius: 12px !important;
     color: #1e293b !important;
     font-weight: 500 !important;
@@ -169,51 +174,53 @@ input[type="text"]:focus {
 }
 
 .gr-button-secondary {
-    background: rgba(255, 255, 255, 0.2) !important;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important;
-    color: white !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    color: #1e293b !important;
+    font-weight: 700 !important;
 }
 
 .gr-button-secondary:hover {
-    background: rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.4) !important;
     transform: translateY(-2px);
 }
 
-/* Output styling */
+/* Output styling - IMPROVED CONTRAST */
 .gr-markdown {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.2) !important;
     border-radius: 16px !important;
     padding: 1.5rem !important;
-    color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 .gr-markdown h3 {
-    color: #e0e7ff !important;
+    color: #0f172a !important;
     font-weight: 700 !important;
     margin-top: 1.5rem !important;
     margin-bottom: 0.75rem !important;
 }
 
 .gr-markdown strong {
-    color: #60a5fa !important;
+    color: #1d4ed8 !important;
+    font-weight: 700 !important;
 }
 
-/* Label styling */
+/* Label styling - IMPROVED CONTRAST */
 label {
-    color: rgba(255, 255, 255, 0.95) !important;
+    color: #1e293b !important;
     font-weight: 600 !important;
     font-size: 0.95rem !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
 }
 
-/* Examples section */
+/* Examples section - IMPROVED CONTRAST */
 .gr-examples {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255, 255, 255, 0.15) !important;
     border-radius: 16px !important;
     padding: 1rem !important;
     margin-top: 1.5rem !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Animation keyframes */
@@ -261,163 +268,152 @@ label {
     background: rgba(255, 255, 255, 0.5);
 }
 
-/* Weather icon indicators */
-.weather-icon {
-    display: inline-block;
-    font-size: 1.5rem;
-    margin-right: 0.5rem;
-    animation: pulse 2s infinite;
+/* Temperature display styling */
+.temp-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    text-align: center;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
-/* Temperature display enhancement */
-.temp-display {
-    font-size: 2rem !important;
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* Group styling */
+.gr-group {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 12px !important;
+    padding: 1rem !important;
+    margin: 0.5rem 0 !important;
+}
+
+/* Markdown text inside groups - IMPROVED CONTRAST */
+.gr-group .gr-markdown {
+    background: transparent !important;
+    border: none !important;
+    padding: 0.5rem 0 !important;
+    color: #1e293b !important;
+    font-weight: 600 !important;
 }
 """
+
+
+def default_output_message() -> str:
+    """Default placeholder message for the prediction output."""
+
+    return (
+        "### 🌟 Ready to predict!\n\n"
+        "Fill in the weather details on the left and click **Predict Temperature** "
+        "to see the AI-powered forecast.\n\n"
+        "💡 Try the example presets below for a quick start!"
+    )
+
+
+def format_model_summary(meta: dict[str, Any]) -> str:
+    """Render the static model information panel."""
+
+    metrics = meta["metrics"]
+    row_count = meta.get("row_count", meta.get("training_samples", 0))
+    return (
+        "### 📈 Model Performance\n\n"
+        f"**Training Samples**: {row_count:,}  \n"
+        f"**Test MAE**: {metrics['mae']:.4f}°C  \n"
+        f"**Test RMSE**: {metrics['rmse']:.4f}°C  \n"
+        f"**Test R²**: {metrics['r2']:.4f}  \n\n"
+        f"*Model trained on {row_count:,} weather snapshots*"
+    )
+
 
 _APP_ARTIFACTS: dict[str, Any] | None = None
 
 
-def resolve_training_source() -> Path:
-    """Return the best available processed dataset for the app model."""
-
-    preferred = PROCESSED_DIR / "weather_without_anomalies.csv"
-    fallback = PROCESSED_DIR / "clean_weather_data.csv"
-    if preferred.exists():
-        return preferred
-    if fallback.exists():
-        return fallback
+def _resolve_training_source() -> Path:
+    for candidate in (
+        PROCESSED_DIR / "weather_without_anomalies.csv",
+        PROCESSED_DIR / "clean_weather_data.csv",
+    ):
+        if candidate.exists():
+            return candidate
     raise FileNotFoundError(
-        "No processed dataset found for app training. Expected "
-        "`data/processed/weather_without_anomalies.csv` or `data/processed/clean_weather_data.csv`."
+        "No processed dataset found. Expected weather_without_anomalies.csv or "
+        "clean_weather_data.csv under data/processed/."
     )
 
 
-def _round_number(value: float, digits: int = 3) -> float:
-    return round(float(value), digits)
+def _train_and_save() -> dict[str, Any]:
+    from src.features import APP_MODEL_FEATURE_COLUMNS, APP_WEATHER_INPUT_COLUMNS, prepare_app_model_frame
+    from src.preprocessing import load_processed_data
 
-
-def build_input_ranges(df: pd.DataFrame) -> dict[str, dict[str, float | int | str]]:
-    """Summarize app-friendly defaults and min/max ranges from the dataset."""
-
-    input_ranges: dict[str, dict[str, float | int | str]] = {}
-    for column in APP_WEATHER_INPUT_COLUMNS:
-        series = pd.to_numeric(df[column], errors="coerce").dropna()
-        if series.empty:
-            continue
-        input_ranges[column] = {
-            "min": _round_number(series.min()),
-            "max": _round_number(series.max()),
-            "default": _round_number(series.median()),
-        }
-
-    timestamps = pd.to_datetime(df["last_updated"], errors="coerce").dropna()
-    if not timestamps.empty:
-        hours = timestamps.dt.hour
-        input_ranges["date"] = {
-            "min": str(timestamps.min().date()),
-            "max": str(timestamps.max().date()),
-            "default": str(timestamps.max().date()),
-        }
-        input_ranges["hour"] = {
-            "min": 0,
-            "max": 23,
-            "default": int(hours.median()),
-        }
-
-    return input_ranges
-
-
-def default_output_message() -> str:
-    """Return the default helper text shown before a prediction is made."""
-
-    return "🌡️ Run a prediction to see the cleaned inputs, model metrics, and final temperature estimate."
-
-
-def train_app_model() -> dict[str, Any]:
-    """Train, persist, and return the Gradio app model plus metadata."""
-
-    source_path = resolve_training_source()
-    df = load_processed_data(source_path)
-    df = df.copy()
-    # Cap physically impossible outlier values that survived anomaly detection
+    source = _resolve_training_source()
+    logger.info("Training app model from %s", source)
+    df = load_processed_data(source).copy()
     for col, lo, hi in [("wind_kph", 0, 200), ("gust_kph", 0, 250), ("pressure_mb", 870, 1100)]:
         if col in df.columns:
             df[col] = df[col].clip(lo, hi)
+
     X, y = prepare_app_model_frame(df, target_column="temperature_celsius")
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        random_state=42,
-    )
-
-    model = RandomForestRegressor(
-        n_estimators=100,
-        max_depth=20,
-        random_state=42,
-        n_jobs=-1,
-    )
+    model = RandomForestRegressor(n_estimators=100, max_depth=20, random_state=42, n_jobs=-1)
     model.fit(X_train, y_train)
 
+    from src.eval import evaluate_regression
     metrics = evaluate_regression(y_test, model.predict(X_test))
-    metadata = {
+
+    # Build input_ranges for UI defaults
+    input_ranges: dict[str, Any] = {}
+    for col in APP_WEATHER_INPUT_COLUMNS:
+        s = pd.to_numeric(df[col], errors="coerce").dropna()
+        if not s.empty:
+            input_ranges[col] = {"min": round(float(s.min()), 3), "max": round(float(s.max()), 3), "default": round(float(s.median()), 3)}
+    ts = pd.to_datetime(df["last_updated"], errors="coerce").dropna()
+    if not ts.empty:
+        input_ranges["date"] = {"min": str(ts.min().date()), "max": str(ts.max().date()), "default": str(ts.max().date())}
+        input_ranges["hour"] = {"min": 0, "max": 23, "default": int(ts.dt.hour.median())}
+
+    meta = {
         "model_name": type(model).__name__,
         "trained_at": datetime.now().isoformat(timespec="seconds"),
-        "source_path": str(source_path),
         "feature_columns": APP_MODEL_FEATURE_COLUMNS,
-        "metrics": {name: _round_number(value, 4) for name, value in metrics.items()},
+        "metrics": {k: round(float(v), 4) for k, v in metrics.items()},
         "row_count": int(len(df)),
         "train_rows": int(len(X_train)),
         "test_rows": int(len(X_test)),
-        "input_ranges": build_input_ranges(df),
+        "input_ranges": input_ranges,
     }
-
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, APP_MODEL_PATH)
-    APP_META_PATH.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    return {"model": model, "meta": metadata}
+    APP_META_PATH.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    logger.info(
+        "Model saved — MAE: %.4f °C  RMSE: %.4f °C  R²: %.4f  rows: %d",
+        meta["metrics"]["mae"], meta["metrics"]["rmse"], meta["metrics"]["r2"], meta["row_count"],
+    )
+    return {"model": model, "meta": meta}
 
 
 def load_app_artifacts(force_retrain: bool = False) -> dict[str, Any]:
-    """Load the app model if available; otherwise train it once."""
+    """Return cached artifacts, loading from disk or training if necessary."""
 
     global _APP_ARTIFACTS
     if _APP_ARTIFACTS is not None and not force_retrain:
         return _APP_ARTIFACTS
 
     if not force_retrain and APP_MODEL_PATH.exists() and APP_META_PATH.exists():
-        _APP_ARTIFACTS = {
-            "model": joblib.load(APP_MODEL_PATH),
-            "meta": json.loads(APP_META_PATH.read_text(encoding="utf-8")),
-        }
-        return _APP_ARTIFACTS
+        logger.info("Loading model from %s", APP_MODEL_PATH)
+        model = joblib.load(APP_MODEL_PATH)
+        with open(APP_META_PATH, encoding="utf-8") as f:
+            meta = json.load(f)
+        _APP_ARTIFACTS = {"model": model, "meta": meta}
+        logger.info("Model loaded (trained at %s)", meta.get("trained_at", "unknown"))
+    else:
+        _APP_ARTIFACTS = _train_and_save()
 
-    _APP_ARTIFACTS = train_app_model()
     return _APP_ARTIFACTS
-
-
-def _as_float(value: Any, label: str) -> float:
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        raise gr.Error(f"{label} is required.")
-    try:
-        return float(value)
-    except (TypeError, ValueError) as exc:
-        raise gr.Error(f"{label} must be numeric.") from exc
-
-
-def _clamp(value: float, *, lower: float | None = None, upper: float | None = None) -> float:
-    if lower is not None:
-        value = max(lower, value)
-    if upper is not None:
-        value = min(upper, value)
-    return value
 
 
 def normalize_prediction_inputs(
@@ -434,102 +430,97 @@ def normalize_prediction_inputs(
     visibility_km: Any,
     uv_index: Any,
 ) -> tuple[dict[str, float | int | str], list[str]]:
-    """Validate user input and return normalized values plus adjustment notes."""
+    """Validate and normalize user input for prediction."""
 
     notes: list[str] = []
-    normalized: dict[str, float | int | str] = {}
 
-    latitude_value = _as_float(latitude, "Latitude")
-    longitude_value = _as_float(longitude, "Longitude")
-    if not -90 <= latitude_value <= 90:
-        raise gr.Error("Latitude must be between -90 and 90.")
-    if not -180 <= longitude_value <= 180:
-        raise gr.Error("Longitude must be between -180 and 180.")
-    normalized["latitude"] = latitude_value
-    normalized["longitude"] = longitude_value
-
+    # Convert and validate latitude
     try:
-        timestamp = pd.Timestamp(date_value)
-    except (TypeError, ValueError) as exc:
-        raise gr.Error("Date must be in YYYY-MM-DD format.") from exc
-    if pd.isna(timestamp):
-        raise gr.Error("Date must be in YYYY-MM-DD format.")
-    normalized["date"] = str(timestamp.date())
+        lat = float(latitude)
+        if not -90.0 <= lat <= 90.0:
+            lat = max(-90.0, min(90.0, lat))
+            notes.append(f"⚠️ Latitude clamped to valid range: {lat:.2f}")
+    except (TypeError, ValueError):
+        lat = 0.0
+        notes.append("⚠️ Invalid latitude; defaulted to 0.0")
 
-    hour_value = _as_float(hour, "Hour")
-    rounded_hour = int(round(hour_value))
-    clamped_hour = int(_clamp(rounded_hour, lower=0, upper=23))
-    if rounded_hour != hour_value:
-        notes.append(f"Hour was rounded from {hour_value} to {rounded_hour}.")
-    if clamped_hour != rounded_hour:
-        notes.append(f"Hour was clamped from {rounded_hour} to {clamped_hour}.")
-    normalized["hour"] = clamped_hour
+    # Convert and validate longitude
+    try:
+        lon = float(longitude)
+        if not -180.0 <= lon <= 180.0:
+            lon = ((lon + 180.0) % 360.0) - 180.0
+            notes.append(f"⚠️ Longitude wrapped to valid range: {lon:.2f}")
+    except (TypeError, ValueError):
+        lon = 0.0
+        notes.append("⚠️ Invalid longitude; defaulted to 0.0")
 
-    pressure_value = _as_float(pressure_mb, "Pressure")
-    clamped_pressure = _clamp(pressure_value, lower=850, upper=1100)
-    if clamped_pressure != pressure_value:
-        notes.append(f"Pressure was clamped from {pressure_value} to {clamped_pressure}.")
-    normalized["pressure_mb"] = clamped_pressure
+    # Validate date
+    try:
+        date_obj = datetime.strptime(str(date_value).strip(), "%Y-%m-%d")
+        date_str = date_obj.strftime("%Y-%m-%d")
+    except (TypeError, ValueError):
+        date_str = "2026-04-24"
+        notes.append(f"⚠️ Invalid date format; defaulted to {date_str}")
 
-    humidity_value = _as_float(humidity, "Humidity")
-    clamped_humidity = _clamp(humidity_value, lower=0, upper=100)
-    if clamped_humidity != humidity_value:
-        notes.append(f"Humidity was clamped from {humidity_value} to {clamped_humidity}.")
-    normalized["humidity"] = clamped_humidity
+    # Validate hour
+    try:
+        hr = int(hour)
+        if not 0 <= hr <= 23:
+            hr = max(0, min(23, hr))
+            notes.append(f"⚠️ Hour clamped to 0-23: {hr}")
+    except (TypeError, ValueError):
+        hr = 12
+        notes.append("⚠️ Invalid hour; defaulted to 12")
 
-    cloud_value = _as_float(cloud, "Cloud")
-    clamped_cloud = _clamp(cloud_value, lower=0, upper=100)
-    if clamped_cloud != cloud_value:
-        notes.append(f"Cloud was clamped from {cloud_value} to {clamped_cloud}.")
-    normalized["cloud"] = clamped_cloud
+    # Helper function to validate numeric fields
+    def validate_numeric(value: Any, name: str, default: float, min_val: float = 0.0) -> float:
+        try:
+            num = float(value)
+            if num < min_val:
+                notes.append(f"⚠️ {name} must be >= {min_val}; clamped to {min_val}")
+                return min_val
+            return num
+        except (TypeError, ValueError):
+            notes.append(f"⚠️ Invalid {name}; defaulted to {default}")
+            return default
 
-    wind_value = _as_float(wind_kph, "Wind")
-    clamped_wind = _clamp(wind_value, lower=0, upper=200)
-    if clamped_wind != wind_value:
-        notes.append(f"Wind was clamped from {wind_value} to {clamped_wind}.")
-    normalized["wind_kph"] = clamped_wind
+    pressure = validate_numeric(pressure_mb, "Pressure", 1013.0, 800.0)
+    humid = validate_numeric(humidity, "Humidity", 50.0, 0.0)
+    cld = validate_numeric(cloud, "Cloud", 0.0, 0.0)
+    wind = validate_numeric(wind_kph, "Wind speed", 0.0, 0.0)
+    gust = validate_numeric(gust_kph, "Gust speed", 0.0, 0.0)
+    precip = validate_numeric(precip_mm, "Precipitation", 0.0, 0.0)
+    vis = validate_numeric(visibility_km, "Visibility", 10.0, 0.0)
+    uv = validate_numeric(uv_index, "UV index", 0.0, 0.0)
 
-    gust_value = _as_float(gust_kph, "Gust")
-    clamped_gust = _clamp(gust_value, lower=0, upper=250)
-    if clamped_gust != gust_value:
-        notes.append(f"Gust was clamped from {gust_value} to {clamped_gust}.")
-    normalized["gust_kph"] = clamped_gust
-
-    precip_value = _as_float(precip_mm, "Precipitation")
-    clamped_precip = _clamp(precip_value, lower=0, upper=500)
-    if clamped_precip != precip_value:
-        notes.append(f"Precipitation was clamped from {precip_value} to {clamped_precip}.")
-    normalized["precip_mm"] = clamped_precip
-
-    visibility_value = _as_float(visibility_km, "Visibility")
-    clamped_visibility = _clamp(visibility_value, lower=0, upper=100)
-    if clamped_visibility != visibility_value:
-        notes.append(f"Visibility was clamped from {visibility_value} to {clamped_visibility}.")
-    normalized["visibility_km"] = clamped_visibility
-
-    uv_value = _as_float(uv_index, "UV Index")
-    clamped_uv = _clamp(uv_value, lower=0, upper=15)
-    if clamped_uv != uv_value:
-        notes.append(f"UV Index was clamped from {uv_value} to {clamped_uv}.")
-    normalized["uv_index"] = clamped_uv
-
-    return normalized, notes
-
-
-def format_model_summary(meta: dict[str, Any]) -> str:
-    """Render the model metadata summary."""
+    # Clamp humidity and cloud to 100%
+    if humid > 100.0:
+        humid = 100.0
+        notes.append("⚠️ Humidity clamped to 100%")
+    if cld > 100.0:
+        cld = 100.0
+        notes.append("⚠️ Cloud cover clamped to 100%")
 
     return (
-        "### 📊 Model Information\n"
-        f"- **Model Type**: {meta['model_name']}\n"
-        f"- **Training Dataset**: {meta['row_count']:,} rows total\n"
-        f"- **Train / Test Split**: {meta['train_rows']:,} / {meta['test_rows']:,} rows\n"
-        f"- **Trained at**: {meta['trained_at']}"
+        {
+            "latitude": lat,
+            "longitude": lon,
+            "date": date_str,
+            "hour": hr,
+            "pressure_mb": pressure,
+            "humidity": humid,
+            "cloud": cld,
+            "wind_kph": wind,
+            "gust_kph": gust,
+            "precip_mm": precip,
+            "visibility_km": vis,
+            "uv_index": uv,
+        },
+        notes,
     )
 
 
 def format_prediction_details(
-    *,
     meta: dict[str, Any],
     normalized: dict[str, float | int | str],
     notes: list[str],
@@ -581,8 +572,26 @@ def predict_temperature(
     precip_mm: Any,
     visibility_km: Any,
     uv_index: Any,
-) -> tuple[float, float, str]:
-    """Predict temperature from a single weather snapshot."""
+) -> str:
+    """Predict temperature from a single weather snapshot.
+
+    When running locally, delegates to the deployed Modal ``predict`` function
+    so the model is always served from the Modal Volume.  Falls back to a local
+    model if Modal is unavailable or we are already inside a Modal container.
+    """
+    if not _is_on_modal():
+        try:
+            import modal
+            predict_fn = modal.Function.lookup("weather-temperature-predictor", "predict")
+            logger.info("Routing prediction to Modal")
+            return predict_fn.remote(
+                float(latitude), float(longitude), str(date_value), int(hour),
+                float(pressure_mb), float(humidity), float(cloud),
+                float(wind_kph), float(gust_kph), float(precip_mm),
+                float(visibility_km), float(uv_index),
+            )
+        except Exception as exc:
+            logger.warning("Modal lookup failed (%s) — falling back to local model", exc)
 
     artifacts = load_app_artifacts()
     normalized, notes = normalize_prediction_inputs(
@@ -616,6 +625,7 @@ def predict_temperature(
 
     celsius = float(artifacts["model"].predict(frame)[0])
     fahrenheit = (celsius * 9.0 / 5.0) + 32.0
+    logger.debug("Prediction: %.2f °C / %.2f °F", celsius, fahrenheit)
     details = format_prediction_details(
         meta=artifacts["meta"],
         normalized=normalized,
@@ -623,7 +633,7 @@ def predict_temperature(
         celsius=celsius,
         fahrenheit=fahrenheit,
     )
-    return round(celsius, 2), round(fahrenheit, 2), details
+    return details
 
 
 def build_example_rows(meta: dict[str, Any]) -> list[list[Any]]:
@@ -654,8 +664,6 @@ def build_reset_values(meta: dict[str, Any]) -> tuple[Any, ...]:
         ranges["precip_mm"]["default"],
         ranges["visibility_km"]["default"],
         ranges["uv_index"]["default"],
-        None,
-        None,
         default_output_message(),
     )
 
@@ -740,8 +748,6 @@ def build_interface() -> gr.Blocks:
 
             with gr.Column(scale=1):
                 gr.Markdown('<div class="panel"><h3>📊 Prediction Output</h3></div>')
-                celsius_output = gr.Number(label="Predicted Temperature (°C)", precision=2, interactive=False)
-                fahrenheit_output = gr.Number(label="Predicted Temperature (°F)", precision=2, interactive=False)
                 details_output = gr.Markdown(default_output_message())
                 gr.Markdown(format_model_summary(meta))
 
@@ -759,7 +765,7 @@ def build_interface() -> gr.Blocks:
             visibility_km,
             uv_index,
         ]
-        outputs = [celsius_output, fahrenheit_output, details_output]
+        outputs = [details_output]
 
         predict_button.click(fn=predict_temperature, inputs=inputs, outputs=outputs)
         reset_button.click(
@@ -774,8 +780,13 @@ def build_interface() -> gr.Blocks:
 def main() -> None:
     """Launch the Gradio application."""
 
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+        datefmt="%H:%M:%S",
+    )
     demo = build_interface()
-    demo.launch()
+    demo.launch(server_name="0.0.0.0")
 
 
 if __name__ == "__main__":

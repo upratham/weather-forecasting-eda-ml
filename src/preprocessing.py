@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Iterable
 
@@ -10,6 +11,8 @@ import pandas as pd
 from scipy import stats
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_RAW_DATA_PATH = Path("data/raw/GlobalWeatherRepository.csv")
 DEFAULT_PROCESSED_DIR = Path("data/processed")
@@ -36,13 +39,19 @@ def _resolve_path(path: str | Path) -> Path:
 def load_raw_weather_data(path: str | Path = DEFAULT_RAW_DATA_PATH) -> pd.DataFrame:
     """Load the raw weather CSV."""
 
-    return pd.read_csv(path)
+    logger.info("Loading raw data from %s", path)
+    df = pd.read_csv(path)
+    logger.info("Loaded %d rows, %d columns", len(df), len(df.columns))
+    return df
 
 
 def load_processed_data(path: str | Path) -> pd.DataFrame:
     """Load a processed CSV file."""
 
-    return pd.read_csv(path, parse_dates=["last_updated"], low_memory=False)
+    logger.info("Loading processed data from %s", path)
+    df = pd.read_csv(path, parse_dates=["last_updated"], low_memory=False)
+    logger.info("Loaded %d rows", len(df))
+    return df
 
 
 def get_numeric_columns(
@@ -58,6 +67,7 @@ def get_numeric_columns(
 def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     """Apply a consistent cleaning pipeline to the raw weather data."""
 
+    logger.info("Cleaning %d rows", len(df))
     cleaned = df.copy()
 
     for column in DATETIME_COLUMNS:
@@ -72,7 +82,11 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     for column in numeric_candidates:
         cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
 
+    before = len(cleaned)
     cleaned = cleaned.drop_duplicates().reset_index(drop=True)
+    dropped = before - len(cleaned)
+    if dropped:
+        logger.debug("Dropped %d duplicate rows", dropped)
 
     numeric_columns = get_numeric_columns(cleaned)
     for column in numeric_columns:
@@ -86,6 +100,8 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
 
     if "last_updated" in cleaned.columns:
         cleaned = cleaned.dropna(subset=["last_updated"]).sort_values("last_updated").reset_index(drop=True)
+
+    logger.info("Clean dataset: %d rows remaining", len(cleaned))
 
     if "humidity" in cleaned.columns:
         cleaned["humidity"] = cleaned["humidity"].clip(lower=0, upper=100)
@@ -137,8 +153,10 @@ def add_isolation_forest_anomalies(
     """Add anomaly labels and scores using Isolation Forest."""
 
     numeric_columns = list(columns) if columns is not None else get_numeric_columns(df)
+    logger.info("Running Isolation Forest on %d rows, %d features", len(df), len(numeric_columns))
     scored = df.copy()
     if not numeric_columns:
+        logger.warning("No numeric columns found; skipping anomaly detection")
         scored["anomaly"] = 1
         scored["anomaly_score"] = 0.0
         return scored
@@ -150,6 +168,8 @@ def add_isolation_forest_anomalies(
     detector = IsolationForest(contamination=contamination, random_state=random_state)
     scored["anomaly"] = detector.fit_predict(scaled_values)
     scored["anomaly_score"] = detector.decision_function(scaled_values)
+    n_anomalies = int((scored["anomaly"] == -1).sum())
+    logger.info("Anomaly detection complete: %d anomalies (%.1f%%)", n_anomalies, 100 * n_anomalies / len(df))
     return scored
 
 
@@ -157,8 +177,11 @@ def remove_anomalies(df: pd.DataFrame, anomaly_column: str = "anomaly") -> pd.Da
     """Keep only the rows considered normal by the anomaly detector."""
 
     if anomaly_column not in df.columns:
+        logger.warning("Column '%s' not found; returning all rows", anomaly_column)
         return df.copy()
-    return df[df[anomaly_column] == 1].copy()
+    result = df[df[anomaly_column] == 1].copy()
+    logger.info("Removed %d anomalous rows; %d rows remaining", len(df) - len(result), len(result))
+    return result
 
 
 def save_processed_data(df: pd.DataFrame, path: str | Path) -> Path:
@@ -167,4 +190,5 @@ def save_processed_data(df: pd.DataFrame, path: str | Path) -> Path:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
+    logger.info("Saved %d rows to %s", len(df), output_path)
     return output_path

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import joblib
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 from sklearn.ensemble import (
     GradientBoostingRegressor,
     RandomForestRegressor,
@@ -18,6 +21,7 @@ from .eval import evaluate_regression, summarize_results
 
 
 def train_linear_regression(X_train: pd.DataFrame, y_train: pd.Series) -> LinearRegression:
+    logger.info("Training LinearRegression on %d samples", len(X_train))
     model = LinearRegression()
     model.fit(X_train, y_train)
     return model
@@ -28,6 +32,7 @@ def train_random_forest_regressor(
     y_train: pd.Series,
     random_state: int = 42,
 ) -> RandomForestRegressor:
+    logger.info("Training RandomForestRegressor on %d samples", len(X_train))
     model = RandomForestRegressor(n_estimators=200, random_state=random_state, n_jobs=-1)
     model.fit(X_train, y_train)
     return model
@@ -38,6 +43,7 @@ def train_gradient_boosting_regressor(
     y_train: pd.Series,
     random_state: int = 42,
 ) -> GradientBoostingRegressor:
+    logger.info("Training GradientBoostingRegressor on %d samples", len(X_train))
     model = GradientBoostingRegressor(random_state=random_state)
     model.fit(X_train, y_train)
     return model
@@ -49,6 +55,7 @@ def train_voting_ensemble(
     random_state: int = 42,
 ) -> VotingRegressor:
     """Average predictions of LR + RF + GB (soft voting by mean)."""
+    logger.info("Training VotingEnsemble (LR+RF+GB) on %d samples", len(X_train))
     estimators = [
         ("lr", LinearRegression()),
         ("rf", RandomForestRegressor(n_estimators=100, random_state=random_state, n_jobs=-1)),
@@ -65,6 +72,7 @@ def train_stacking_ensemble(
     random_state: int = 42,
 ) -> StackingRegressor:
     """Stack LR + RF + GB with a Ridge meta-learner using 5-fold CV."""
+    logger.info("Training StackingEnsemble (LR+RF+GB → Ridge) on %d samples", len(X_train))
     estimators = [
         ("lr", LinearRegression()),
         ("rf", RandomForestRegressor(n_estimators=100, random_state=random_state, n_jobs=-1)),
@@ -102,7 +110,10 @@ def compare_regression_models(
         name: evaluate_regression(y_test, model.predict(X_test))
         for name, model in models.items()
     }
-    return models, summarize_results(metrics)
+    summary = summarize_results(metrics)
+    for name, row in summary.iterrows():
+        logger.info("  %-20s  MAE=%.4f  RMSE=%.4f  R²=%.4f", name, row["mae"], row["rmse"], row["r2"])
+    return models, summary
 
 
 def save_model(model: object, path: str | Path) -> Path:
@@ -111,4 +122,5 @@ def save_model(model: object, path: str | Path) -> Path:
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, output_path)
+    logger.info("Saved model to %s", output_path)
     return output_path

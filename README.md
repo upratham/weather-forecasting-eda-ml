@@ -1,12 +1,10 @@
-# WeatherFlow — Full-Stack AI Weather App
+# WeatherFlow — AI Weather Temperature Predictor
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688?style=flat&logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat&logo=python&logoColor=white)
+![Gradio](https://img.shields.io/badge/Gradio-4.0%2B-FF7C00?style=flat&logo=gradio&logoColor=white)
+![Modal](https://img.shields.io/badge/Modal-deployed-6C47FF?style=flat&logo=modal&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3%2B-F7931E?style=flat&logo=scikit-learn&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat&logo=docker&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-deployed-000000?style=flat&logo=vercel&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
 > **Tech Assessment Submission — PM Accelerator | AI Engineer Intern (Full Stack)**
@@ -15,7 +13,7 @@
 
 ## PM Accelerator
 
-**Product Manager Accelerator (PMA)** is a leading community-driven program designed to help professionals break into and advance within product management. Through mentorship from experienced PMs, structured coaching, hands-on projects, and a thriving peer community, PMA accelerates careers in product management across tech, fintech, healthtech, and beyond. PMA offers bootcamps, 1-on-1 coaching, portfolio-building workshops, and job placement support — empowering aspiring and current PMs to land roles at top companies and build products that matter.
+**Product Manager Accelerator (PMA)** is a leading community-driven program designed to help professionals break into and advance within product management. Through mentorship from experienced PMs, structured coaching, hands-on projects, and a thriving peer community, PMA accelerates careers in product management across tech, fintech, healthtech, and beyond.
 
 > [linkedin.com/company/product-manager-accelerator](https://www.linkedin.com/company/product-manager-accelerator)
 
@@ -23,29 +21,16 @@
 
 ## Overview
 
-**WeatherFlow** is a full-stack weather intelligence application built for the PM Accelerator AI Engineer Intern assessment (both Tech Assessment #1 and #2). It combines a **FastAPI** backend with a **React + Vite** frontend to deliver real-time weather data, CRUD-persistent query history, multi-format data export, and external API integrations — all without requiring any API keys.
+**WeatherFlow** is an end-to-end AI weather intelligence application. It trains a **RandomForest** temperature predictor on the Global Weather Repository, exposes it through a **Gradio** web interface, and deploys it serverlessly to **Modal** — all from a single automated pipeline.
 
-### Assessments Covered
+### Key Features
 
-| Requirement | Implementation |
-|------------|---------------|
-| **Frontend (Assessment 1)** | React 18 + Vite, responsive CSS Grid, weather icons, error handling |
-| Location input (city / zip / GPS / landmark) | Open-Meteo geocoding with fuzzy match |
-| Current weather display | Temperature (°C + °F), humidity, wind, UV, pressure, cloud, precipitation |
-| Current location via GPS | Browser Geolocation API |
-| 5-day / 7-day forecast | Open-Meteo forecast API, WMO weather code icons |
-| Responsive design | CSS Grid + Media Queries (desktop, tablet, mobile) |
-| Error handling | Inline banners with dismissal, validation on all inputs |
-| **Backend (Assessment 2)** | FastAPI + SQLAlchemy + SQLite |
-| CRUD — Create | `POST /api/queries` with date range and location validation |
-| CRUD — Read | `GET /api/queries` + `GET /api/queries/{id}` |
-| CRUD — Update | `PUT /api/queries/{id}` with inline edit UI |
-| CRUD — Delete | `DELETE /api/queries/{id}` with confirmation |
-| Date range validation | Server-side: `end_date >= start_date` check |
-| Location validation | Open-Meteo geocoding — returns 404 if location doesn't exist |
-| Data export | JSON, CSV, XML, Markdown via `GET /api/export?fmt=` |
-| Additional API integration | Google Maps link + YouTube search per queried location |
-| Developer name + PM Accelerator info | Header, footer, and dedicated About tab |
+- **Gradio UI** — interactive weather input form with live temperature predictions (°C + °F)
+- **Automated pipeline** — `train_eval_deploy()` trains the model, prints metrics, and deploys to Modal in one call
+- **Modal deployment** — persistent serverless endpoint with a Modal Volume to cache the trained model across cold starts
+- **Remote prediction** — `predict_remote()` calls the live Modal endpoint from notebooks or scripts
+- **Structured logging** — all operations (data loading, training, deployment, inference) emit timestamped log lines
+- **Full ML notebook suite** — EDA, anomaly detection, time-series forecasting, and ensemble models
 
 ---
 
@@ -53,15 +38,13 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Backend API | FastAPI 0.111, Python 3.9+ |
-| Database | SQLite via SQLAlchemy 2.0 (ORM) |
-| HTTP client | httpx (async) |
-| Frontend | React 18, Vite 5, CSS Modules |
-| Weather data | [Open-Meteo](https://open-meteo.com) — free, no API key required |
-| Geocoding | Open-Meteo Geocoding API — fuzzy location matching |
-| ML (notebooks) | scikit-learn, statsmodels, Prophet, XGBoost |
-| Containerisation | Docker (multi-stage: Node 20 + Python 3.11-slim) |
-| Serverless deploy | Vercel (Python runtime via Mangum + static React build) |
+| UI | Gradio 4.0+ (glassmorphism theme) |
+| ML | scikit-learn RandomForestRegressor |
+| Deployment | Modal (serverless ASGI) |
+| Remote client | gradio_client |
+| Data | [Global Weather Repository](https://www.kaggle.com/datasets/nelgiriyewithana/global-weather-repository) |
+| Containerisation | Docker (Debian Slim, Python 3.11) |
+| Notebooks | Jupyter, pandas, numpy, statsmodels, XGBoost, LightGBM |
 
 ---
 
@@ -69,128 +52,50 @@
 
 ```
 weather-forecasting-eda-ml/
-├── backend/                           # FastAPI application
-│   ├── __init__.py
-│   ├── main.py                        # All routes: weather, CRUD, export, static serving
-│   ├── database.py                    # SQLAlchemy engine + session factory
-│   ├── models.py                      # WeatherQuery ORM model
-│   └── schemas.py                     # Pydantic request/response schemas
-│
-├── frontend/                          # React + Vite application
-│   ├── package.json
-│   ├── vite.config.js                 # Dev proxy → FastAPI on :8000
-│   ├── index.html
-│   └── src/
-│       ├── App.jsx                    # Root component + state management
-│       ├── App.module.css
-│       ├── index.css                  # Global CSS variables + resets
-│       ├── main.jsx
-│       ├── services/
-│       │   └── api.js                 # Fetch wrappers for every API endpoint
-│       └── components/
-│           ├── SearchBar.jsx          # Location search + GPS button
-│           ├── WeatherCard.jsx        # Current weather display
-│           ├── ForecastGrid.jsx       # 7-day forecast grid
-│           ├── SaveQueryModal.jsx     # Date range + notes → POST /api/queries
-│           ├── QueryHistory.jsx       # CRUD table with inline edit
-│           ├── ExportPanel.jsx        # JSON / CSV / XML / Markdown download
-│           └── AboutSection.jsx       # Developer + PM Accelerator info
-│
-├── data/
-│   ├── raw/                           # GlobalWeatherRepository.csv (~35 MB)
-│   ├── processed/                     # Cleaned + anomaly-filtered datasets
-│   └── cleaned/
+├── app.py                             # Gradio app — train, predict, UI
+├── src/
+│   ├── pipeline.py                    # Train → eval → Modal deploy pipeline
+│   ├── modal_deploy.py                # Modal app definition (ASGI)
+│   ├── preprocessing.py               # Data loading, cleaning, anomaly detection
+│   ├── features.py                    # Feature engineering helpers
+│   ├── train.py                       # Model training utilities
+│   ├── eval.py                        # Regression + forecast metrics
+│   └── visualize.py                   # Plotting utilities
 ├── notebooks/
 │   ├── 01_data_cleaning.ipynb
 │   ├── 02_eda.ipynb
 │   ├── 03_anomaly_analysis.ipynb
 │   ├── 04_time_series_forecasting.ipynb
 │   ├── 05_ml_models.ipynb
-│   └── 06_advanced_analyses.ipynb            # Ensemble, spatial maps, climate analysis
-├── src/
-│   ├── preprocessing.py               # Data loading, cleaning, anomaly detection
-│   ├── features.py                    # Feature engineering helpers
-│   ├── train.py                       # Model training utilities
-│   ├── eval.py                        # Regression + forecast metrics
-│   └── visualize.py                   # Plotting utilities
+│   └── 06_advanced_analyses.ipynb     # Ensemble, spatial maps, climate analysis
+├── data/
+│   ├── raw/                           # GlobalWeatherRepository.csv (~35 MB)
+│   └── processed/                     # Cleaned + anomaly-filtered datasets
+├── models/                            # Saved model + metadata (auto-created)
+│   ├── gradio_temperature_model.joblib
+│   ├── gradio_temperature_model_meta.json
+│   └── endpoint_url.txt               # Cached Modal endpoint URL after deploy
 ├── reports/
-│   ├── weather_forecasting_report.md  # Full analysis report
-│   ├── forecast_metrics.csv
+│   ├── weather_forecasting_report.md
 │   └── temperature_model_metrics.csv
-├── api/
-│   └── index.py                       # Vercel serverless entry point (Mangum adapter)
-├── Dockerfile                         # Multi-stage Docker build (frontend + backend)
-├── vercel.json                        # Vercel deployment configuration
-├── requirements-vercel.txt            # Lightweight deps for Vercel (no heavy ML stack)
-├── run.py                             # Entry point — starts uvicorn
+├── Dockerfile
+├── .env                               # Modal credentials (gitignored)
 ├── requirements.txt
-└── weather_app.db                     # SQLite database (auto-created on first run)
+└── pyproject.toml
 ```
-
----
-
-## API Reference
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/weather?location=London` | Real-time weather + 7-day forecast |
-| `GET` | `/api/weather?lat=51.5&lon=-0.12` | Same, by coordinates |
-| `GET` | `/api/geocode?query=New+York` | Validate and resolve a location |
-| `POST` | `/api/queries` | Save a weather query to the database |
-| `GET` | `/api/queries` | List all saved queries |
-| `GET` | `/api/queries/{id}` | Get a single query |
-| `PUT` | `/api/queries/{id}` | Update notes / date range |
-| `DELETE` | `/api/queries/{id}` | Delete a query |
-| `GET` | `/api/export?fmt=json` | Export all queries as JSON |
-| `GET` | `/api/export?fmt=csv` | Export as CSV |
-| `GET` | `/api/export?fmt=xml` | Export as XML |
-| `GET` | `/api/export?fmt=markdown` | Export as Markdown table |
-
-Interactive docs available at **`http://localhost:8000/docs`** (Swagger UI).
-
----
-
-## Deployment
-
-### Docker
-
-```bash
-# Build the image
-docker build -t weatherflow .
-
-# Run — database persists in a named volume
-docker run -p 8000:8000 -v weatherflow_data:/app/data weatherflow
-```
-
-Open **http://localhost:8000**
-
-### Vercel
-
-The project includes a pre-configured [`vercel.json`](vercel.json). Deploy with:
-
-```bash
-vercel deploy
-```
-
-The Vercel build:
-- Compiles the React frontend (`frontend/`) into static assets
-- Wraps the FastAPI backend in a Python serverless function via [Mangum](https://mangum.faizanbashir.me/) (`api/index.py`)
-- Routes `/api/*` to the serverless function and all other paths to the static React build
-
-> **Note:** Vercel's serverless environment is ephemeral — the SQLite database will not persist between invocations. For production persistence, swap `DATABASE_URL` to a hosted database (PostgreSQL, PlanetScale, etc.).
 
 ---
 
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/upratham/weather-forecasting-eda-ml.git
 cd weather-forecasting-eda-ml
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
@@ -202,55 +107,134 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 3. Install Python dependencies
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Install frontend dependencies
+### 4. Download the dataset
 
 ```bash
-cd frontend
-npm install
-cd ..
+kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/raw/ --unzip
+```
+
+### 5. Configure Modal credentials
+
+Create a `.env` file in the project root (get your token from [modal.com/settings/tokens](https://modal.com/settings/tokens)):
+
+```
+MODAL_TOKEN_ID=your_token_id_here
+MODAL_TOKEN_SECRET=your_token_secret_here
 ```
 
 ---
 
 ## Running the App
 
-### Option A — Production (single server on port 8000)
+### Local Gradio server
 
 ```bash
-# Build the React frontend first
-cd frontend && npm run build && cd ..
-
-# Start the FastAPI backend — serves both API and built UI
-python run.py
+python app.py
 ```
 
-Open **http://localhost:8000**
+Opens at **http://localhost:7860**. The model trains automatically on first launch (~30 s) and is cached to `models/` for subsequent runs.
 
-### Option B — Development (hot reload on both sides)
+### Docker
 
 ```bash
-# Terminal 1 — FastAPI backend
-python run.py
-
-# Terminal 2 — React dev server (proxies /api to :8000)
-cd frontend && npm run dev
+docker build -t weatherflow .
+docker run -p 7860:7860 weatherflow
 ```
 
-Open **http://localhost:5173**
+---
 
-> The SQLite database (`weather_app.db`) is created automatically in the project root on first startup. No database setup is required.
+## Modal Deployment
+
+### One-off commands
+
+```bash
+# Hot-reload dev server (temporary URL, useful for testing)
+modal serve src/modal_deploy.py
+
+# Permanent deploy to Modal cloud
+modal deploy src/modal_deploy.py
+```
+
+### Automated pipeline (train → eval → deploy)
+
+From a notebook or script:
+
+```python
+from src.pipeline import train_eval_deploy, predict_remote, get_endpoint_url
+
+# Train the model, print metrics, deploy to Modal, cache the endpoint URL
+result = train_eval_deploy()
+print(result["endpoint_url"])
+# → https://<user>--weather-temperature-predictor-serve.modal.run
+```
+
+The endpoint URL is saved to `models/endpoint_url.txt` and reused by `get_endpoint_url()` without redeploying.
+
+To force a retrain and redeploy:
+
+```python
+result = train_eval_deploy(force_retrain=True)
+```
+
+### Remote prediction
+
+```python
+from src.pipeline import predict_remote, get_endpoint_url
+
+celsius, fahrenheit, details = predict_remote(
+    get_endpoint_url(),
+    latitude=12.97,   longitude=77.59,
+    date_value="2026-04-25", hour=9,
+    pressure_mb=1012.0, humidity=68.0,  cloud=35.0,
+    wind_kph=14.0,    gust_kph=22.0,   precip_mm=0.0,
+    visibility_km=10.0, uv_index=5.5,
+)
+print(f"{celsius:.2f} °C / {fahrenheit:.2f} °F")
+```
+
+---
+
+## Logging
+
+All modules emit structured log lines via Python's standard `logging`. Run locally:
+
+```python
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+    datefmt="%H:%M:%S",
+)
+```
+
+`python app.py` configures this automatically. Sample output:
+
+```
+10:32:01  INFO      app                 Loading model from models/gradio_temperature_model.joblib
+10:32:01  INFO      app                 Model loaded (trained at 2026-04-25T10:00:00)
+10:32:04  INFO      src.pipeline        Deploying to Modal…
+10:32:18  INFO      src.pipeline        Deployed. Endpoint: https://user--weather-temperature-predictor-serve.modal.run
+10:32:20  DEBUG     app                 Prediction: 24.31 °C / 75.76 °F
+```
+
+| Module | What it logs |
+|--------|-------------|
+| `app` | Model load/train, metrics after save, each prediction (DEBUG) |
+| `src.pipeline` | Deploy start/result/error, remote prediction call + result |
+| `src.preprocessing` | Row counts on load, duplicates dropped, anomaly count + % |
+| `src.train` | Each model fit with sample count, metrics table |
 
 ---
 
 ## ML Notebooks
 
-The `notebooks/` folder contains the full data science pipeline used to analyze the Global Weather Repository dataset. Run them in order for the complete pipeline:
+Run in order for the complete pipeline:
 
 ```bash
 jupyter notebook
@@ -258,24 +242,16 @@ jupyter notebook
 
 | Notebook | Description |
 |----------|-------------|
-| `01_data_cleaning.ipynb` | Missing values, outliers, type normalization |
+| `01_data_cleaning.ipynb` | Missing values, outliers, type normalisation |
 | `02_eda.ipynb` | Distributions, correlations, temporal trends, air quality |
 | `03_anomaly_analysis.ipynb` | Isolation Forest anomaly detection |
 | `04_time_series_forecasting.ipynb` | ARIMA vs Prophet comparison |
 | `05_ml_models.ipynb` | Linear Regression, Random Forest, Gradient Boosting |
 | `06_advanced_analyses.ipynb` | Ensemble models, spatial maps, climate zone analysis |
 
-### Dataset
-
-Download `GlobalWeatherRepository.csv` (~35 MB) from Kaggle and place in `data/raw/`:
-
-```bash
-kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/raw/ --unzip
-```
-
 ---
 
-## ML Results at a Glance
+## ML Results
 
 ### Regression Models (test set, anomaly-cleaned data)
 
@@ -284,8 +260,8 @@ kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/r
 | Linear Regression | 0.018 °C | 0.023 °C | **0.9999** |
 | Random Forest | 0.007 °C | 0.193 °C | 0.9996 |
 | Gradient Boosting | 0.049 °C | 0.202 °C | 0.9995 |
-| Voting Ensemble (LR+RF+GB) | see `reports/ensemble_metrics.csv` | — | — |
-| Stacking Ensemble (Ridge meta) | see `reports/ensemble_metrics.csv` | — | — |
+| Voting Ensemble (LR+RF+GB) | see `reports/temperature_model_metrics.csv` | — | — |
+| Stacking Ensemble (Ridge meta) | see `reports/temperature_model_metrics.csv` | — | — |
 
 ### Time-Series Models (daily temperature forecast)
 
@@ -295,44 +271,6 @@ kaggle datasets download -d nelgiriyewithana/global-weather-repository -p data/r
 | Prophet | 4.390 °C | 5.771 °C | 25.99% |
 
 Full findings in **[`reports/weather_forecasting_report.md`](reports/weather_forecasting_report.md)**
-
----
-
-## Requirements
-
-Key packages (full list in [`requirements.txt`](requirements.txt)):
-
-```
-# Backend
-fastapi>=0.111.0      uvicorn[standard]>=0.29.0
-httpx>=0.27.0         sqlalchemy>=2.0.0
-aiofiles>=23.2.0      python-multipart>=0.0.9
-
-# ML / notebooks
-pandas>=2.0.0         numpy>=1.24.0
-scikit-learn>=1.3.0   statsmodels>=0.14.0
-matplotlib>=3.7.0     plotly>=5.15.0
-joblib>=1.3.0         jupyter>=1.0.0
-```
-
-Frontend: Node.js 18+ with npm.
-
----
-
-## Demo Video
-
-*A 1–2 minute screen recording walking through the app and key features:*
-
-`[Add your Google Drive / YouTube / Vimeo link here]`
-
-**Recording script outline:**
-1. Start the app (`python run.py`) and open `http://localhost:8000`
-2. Search a city — show current weather card and 7-day forecast
-3. Click **Save Query** — fill in dates and notes, submit
-4. Open **History** tab — show the saved entry, edit notes inline, then delete
-5. Open **Export** tab — download CSV and show the file
-6. Briefly open `/docs` (Swagger UI) to show the live API
-7. Optional: show a notebook cell and one ML result chart
 
 ---
 
