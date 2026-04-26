@@ -134,16 +134,9 @@ def predict_remote(
     return celsius, fahrenheit, str(result[2])
 
 
-# ---------------------------------------------------------------------------
-# Full pipeline
-# ---------------------------------------------------------------------------
 
 def train_eval_deploy(force_retrain: bool = False) -> dict:
-    """Train the model, print evaluation metrics, deploy to Modal.
-
-    Returns the artifacts dict (model, meta) plus an ``endpoint_url`` key.
-    Safe to call repeatedly — skips retraining unless ``force_retrain=True``.
-    """
+  
     from app import load_app_artifacts
 
     logger.info("Loading / training model (force_retrain=%s)", force_retrain)
